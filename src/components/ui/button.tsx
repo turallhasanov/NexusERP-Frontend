@@ -1,14 +1,32 @@
 import type { ButtonHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn.ts'
-import { styles } from '@/lib/styles.ts'
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
+type ButtonVariant = 'default' | 'outline'
 
-export function Button({ className, type = 'button', ...props }: ButtonProps) {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant
+}
+
+const variants: Record<ButtonVariant, string> = {
+  default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+  outline: 'border border-border bg-background hover:bg-muted',
+}
+
+export function Button({
+  className,
+  variant = 'default',
+  type = 'button',
+  ...props
+}: ButtonProps) {
   return (
     <button
       type={type}
-      className={cn(styles.buttonPrimary, className)}
+      className={cn(
+        'inline-flex h-8 items-center justify-center rounded-sm px-3 text-sm font-medium',
+        'disabled:pointer-events-none disabled:opacity-50',
+        variants[variant],
+        className,
+      )}
       {...props}
     />
   )

@@ -25,7 +25,6 @@ export const styles = {
   field: 'flex flex-col gap-1 text-sm',
   fieldLabel: 'text-neutral-600',
   input: 'rounded-sm border border-neutral-200 px-3 py-2',
-  buttonPrimary: 'rounded-sm bg-neutral-900 px-4 py-2 text-sm text-white',
   badge: 'inline-flex rounded-sm px-2 py-1 text-xs font-medium',
   badgeMuted: 'bg-neutral-100 text-neutral-600',
   badgeSuccess: 'bg-emerald-50 text-emerald-700',
