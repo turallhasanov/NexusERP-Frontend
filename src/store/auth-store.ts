@@ -5,14 +5,14 @@ type AuthState = {
   user: User | null
 }
 
-const DEFAULT_USER: User = {
+export const DEMO_USER: User = {
   id: '1',
   name: 'Aysel Məmmədova',
   role: 'admin',
 }
 
 let state: AuthState = {
-  user: DEFAULT_USER,
+  user: null,
 }
 
 const listeners = new Set<() => void>()
