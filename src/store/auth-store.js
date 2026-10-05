@@ -1,21 +1,16 @@
 import { useSyncExternalStore } from 'react'
-import type { User } from '@/types/auth.ts'
 
-type AuthState = {
-  user: User | null
-}
-
-const DEFAULT_USER: User = {
+export const DEMO_USER = {
   id: '1',
   name: 'Aysel Məmmədova',
   role: 'admin',
 }
 
-let state: AuthState = {
-  user: DEFAULT_USER,
+let state = {
+  user: null,
 }
 
-const listeners = new Set<() => void>()
+const listeners = new Set()
 
 function emit() {
   for (const listener of listeners) {
@@ -27,14 +22,14 @@ export function getAuthState() {
   return state
 }
 
-export function subscribeAuth(listener: () => void) {
+export function subscribeAuth(listener) {
   listeners.add(listener)
   return () => {
     listeners.delete(listener)
   }
 }
 
-export function setAuthUser(user: User | null) {
+export function setAuthUser(user) {
   state = { user }
   emit()
 }

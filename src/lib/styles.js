@@ -9,6 +9,10 @@ export const styles = {
   header: 'flex h-14 shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-6',
   headerMeta: 'text-sm text-neutral-500',
   headerUser: 'flex items-center gap-3 text-sm',
+  headerAction: 'text-sm text-neutral-500 hover:text-neutral-900',
+  loginScreen: 'flex min-h-svh items-center justify-center bg-neutral-100 p-6',
+  loginPanel: 'w-full max-w-sm space-y-6',
+  loginBrand: 'text-center text-sm font-semibold tracking-tight',
   contentColumn: 'flex min-w-0 flex-1 flex-col',
   main: 'min-h-0 flex-1 overflow-auto p-6',
   page: 'space-y-6',
@@ -40,4 +44,4 @@ export const styles = {
   definitionRow: 'flex justify-between',
   definitionValue: 'text-neutral-900',
   sectionTitle: 'font-semibold',
-} as const
+}
