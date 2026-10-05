@@ -3,17 +3,19 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { placeOrder } from '@/features/sales/api/place-order'
 import { styles } from '@/lib/styles'
-import { addOrder } from '@/store/orders-store'
+import { useInventoryStore } from '@/store/inventory-store'
 
 const EMPTY_FORM = {
   customer: '',
-  product: '',
+  productId: '',
   quantity: 1,
   unitPrice: '',
 }
 
 export function OrderForm() {
+  const { products } = useInventoryStore()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
 
@@ -30,11 +32,11 @@ export function OrderForm() {
     event.preventDefault()
 
     const customer = form.customer.trim()
-    const product = form.product.trim()
+    const productId = form.productId
     const quantity = Number(form.quantity)
     const unitPrice = Number(form.unitPrice)
 
-    if (!customer || !product) {
+    if (!customer || !productId) {
       setError('Kontragent və məhsul tələb olunur.')
       return
     }
@@ -49,7 +51,13 @@ export function OrderForm() {
       return
     }
 
-    addOrder({ customer, product, quantity, unitPrice })
+    const result = placeOrder({ customer, productId, quantity, unitPrice })
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
     setForm(EMPTY_FORM)
     setError('')
   }
@@ -66,11 +74,18 @@ export function OrderForm() {
             />
           </Field>
           <Field label="Məhsul">
-            <Input
-              value={form.product}
-              onChange={updateField('product')}
-              placeholder="Məhsulun adı"
-            />
+            <select
+              className={styles.input}
+              value={form.productId}
+              onChange={updateField('productId')}
+            >
+              <option value="">Məhsulu seçin</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} ({product.quantity})
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Say">
             <Input
