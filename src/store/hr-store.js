@@ -6,11 +6,19 @@ const INITIAL_EMPLOYEES = [
   { id: '3', name: 'Nigar Əliyeva', title: 'Satıcı', department: 'Satış', status: 'leave' },
 ]
 
+let nextSequence = INITIAL_EMPLOYEES.length + 1
+
 let state = {
   employees: INITIAL_EMPLOYEES,
 }
 
 const listeners = new Set()
+
+function emit() {
+  for (const listener of listeners) {
+    listener()
+  }
+}
 
 export function getHrState() {
   return state
@@ -21,6 +29,20 @@ export function subscribeHr(listener) {
   return () => {
     listeners.delete(listener)
   }
+}
+
+export function addEmployee({ name, title, department }) {
+  const employee = {
+    id: String(nextSequence),
+    name,
+    title,
+    department,
+    status: 'active',
+  }
+
+  nextSequence += 1
+  state = { employees: [employee, ...state.employees] }
+  emit()
 }
 
 export function useHrStore() {
