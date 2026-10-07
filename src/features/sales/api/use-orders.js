@@ -6,5 +6,6 @@ export function useOrders() {
   return {
     orders,
     openOrders: orders.filter((order) => order.status === 'open').length,
+    closedOrders: orders.filter((order) => order.status === 'closed').length,
   }
 }
