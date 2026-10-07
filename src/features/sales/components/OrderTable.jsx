@@ -4,7 +4,7 @@ import { setOrderStatus } from '@/features/sales/api/toggle-order-status'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Say', 'Məbləğ', 'Status', 'Əməliyyat']
+const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Say', 'Məbləğ', 'Status', 'Əməliyyat']
 
 export function OrderTable({ orders }) {
   return (
@@ -33,6 +33,7 @@ export function OrderTable({ orders }) {
                 <td className={styles.tableCell}>{order.customer}</td>
                 <td className={styles.tableCellMuted}>{order.voen}</td>
                 <td className={styles.tableCellMuted}>{order.product}</td>
+                <td className={styles.tableCellMuted}>{order.warehouse}</td>
                 <td className={styles.tableCell}>{order.quantity}</td>
                 <td className={styles.tableCell}>{formatAzn(order.total)}</td>
                 <td className={styles.tableCell}>
