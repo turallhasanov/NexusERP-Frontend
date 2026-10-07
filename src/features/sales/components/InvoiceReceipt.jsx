@@ -1,24 +1,37 @@
 import { Card } from '@/components/ui/card'
+import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
-
-const INVOICE_ROWS = [
-  { label: 'Qaimə №', value: 'SAT-2026-001' },
-  { label: 'Kontragent', value: 'Nümunə Ticarət MMC' },
-  { label: 'Məbləğ', value: '4.250,00 ₼' },
-]
+import { useOrdersStore } from '@/store/orders-store'
 
 export function InvoiceReceipt() {
+  const { orders } = useOrdersStore()
+  const latest = orders[0]
+
   return (
     <Card className="text-sm">
       <h2 className={styles.sectionTitle}>Son qaimə qaralaması</h2>
-      <dl className={styles.definitionList}>
-        {INVOICE_ROWS.map((row) => (
-          <div key={row.label} className={styles.definitionRow}>
-            <dt>{row.label}</dt>
-            <dd className={styles.definitionValue}>{row.value}</dd>
+      {latest ? (
+        <dl className={styles.definitionList}>
+          <div className={styles.definitionRow}>
+            <dt>Qaimə №</dt>
+            <dd className={styles.definitionValue}>{latest.number}</dd>
           </div>
-        ))}
-      </dl>
+          <div className={styles.definitionRow}>
+            <dt>Kontragent</dt>
+            <dd className={styles.definitionValue}>{latest.customer}</dd>
+          </div>
+          <div className={styles.definitionRow}>
+            <dt>Məhsul</dt>
+            <dd className={styles.definitionValue}>{latest.product}</dd>
+          </div>
+          <div className={styles.definitionRow}>
+            <dt>Məbləğ</dt>
+            <dd className={styles.definitionValue}>{formatAzn(latest.total)}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p className={styles.pageDescription}>Qaralama üçün əvvəlcə sifariş yazın.</p>
+      )}
     </Card>
   )
 }

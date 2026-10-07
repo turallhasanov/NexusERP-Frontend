@@ -1,21 +1,24 @@
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
+import { useDashboardSummary } from '@/features/dashboard/api/use-dashboard-summary'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const SUMMARY_CARDS = [
-  { label: 'Açıq sifariş', value: '12' },
-  { label: 'Kritik ehtiyat', value: '1' },
-  { label: 'Bu günkü mədaxil', value: '18.400 ₼' },
-]
-
 export function DashboardPage() {
+  const { openOrders, criticalStock, revenue } = useDashboardSummary()
   useDocumentTitle('İdarə paneli')
+
+  const cards = [
+    { label: 'Açıq sifariş', value: String(openOrders) },
+    { label: 'Kritik ehtiyat', value: String(criticalStock) },
+    { label: 'Bu günkü mədaxil', value: formatAzn(revenue) },
+  ]
 
   return (
     <PageContainer title="İdarə paneli" description="Günün xülasə rəqəmləri.">
       <div className={styles.summaryGrid}>
-        {SUMMARY_CARDS.map((card) => (
+        {cards.map((card) => (
           <Card key={card.label}>
             <p className={styles.summaryLabel}>{card.label}</p>
             <p className={styles.summaryValue}>{card.value}</p>
