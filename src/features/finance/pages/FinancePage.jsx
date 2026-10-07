@@ -9,11 +9,11 @@ import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function FinancePage() {
-  const { entries, expenses, income, expenseTotal } = useFinanceLedger()
+  const { entries, expenses, income, expenseTotal, balance } = useFinanceLedger()
   useDocumentTitle('Maliyyə')
 
   return (
-    <PageContainer title="Maliyyə" description="Satış mədaxili və ofis məxarici.">
+    <PageContainer title="Maliyyə" description="Satış mədaxili, ofis məxarici və günün qalığı.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Bu günkü mədaxil</p>
@@ -22,6 +22,10 @@ export function FinancePage() {
         <Card>
           <p className={styles.summaryLabel}>Bu günkü məxaric</p>
           <p className={styles.summaryValue}>{formatAzn(expenseTotal)}</p>
+        </Card>
+        <Card>
+          <p className={styles.summaryLabel}>Bu günkü qalıq</p>
+          <p className={styles.summaryValue}>{formatAzn(balance)}</p>
         </Card>
       </div>
       <ExpenseForm />
