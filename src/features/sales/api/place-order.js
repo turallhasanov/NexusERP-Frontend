@@ -1,3 +1,4 @@
+import { PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
 import { getCustomer } from '@/store/customers-store'
 import { addOrder } from '@/store/orders-store'
 import { deductStock, getProduct } from '@/store/inventory-store'
@@ -5,6 +6,10 @@ import { getStore } from '@/store/stores-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
 export function placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice, payment }) {
+  if (payment !== PAYMENT_CASH && payment !== PAYMENT_CARD) {
+    return { ok: false, error: 'Ödəniş növü tələb olunur.' }
+  }
+
   const isRetail = type === 'retail'
   const store = isRetail ? getStore(storeId) : null
 
