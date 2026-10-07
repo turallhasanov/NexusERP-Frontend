@@ -56,6 +56,25 @@ export function deductStock(productId, quantity) {
   return { ok: true }
 }
 
+export function receiveStock(productId, quantity) {
+  const product = getProduct(productId)
+
+  if (!product) {
+    return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
+  }
+
+  state = {
+    products: state.products.map((item) =>
+      item.id === productId
+        ? { ...item, quantity: item.quantity + quantity }
+        : item,
+    ),
+  }
+  emit()
+
+  return { ok: true }
+}
+
 export function useInventoryStore() {
   return useSyncExternalStore(subscribeInventory, getInventoryState, getInventoryState)
 }
