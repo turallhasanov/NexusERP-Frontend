@@ -2,9 +2,10 @@ import { Card } from '@/components/ui/card'
 import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
 import { setOrderStatus } from '@/features/sales/api/toggle-order-status'
 import { formatAzn } from '@/lib/money'
+import { paymentLabel } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Növ', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Mağaza', 'Say', 'Məbləğ', 'Status', 'Əməliyyat']
+const TABLE_COLUMNS = ['Qaimə', 'Növ', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Mağaza', 'Say', 'Məbləğ', 'Ödəniş', 'Status', 'Əməliyyat']
 
 export function OrderTable({ orders }) {
   return (
@@ -38,6 +39,7 @@ export function OrderTable({ orders }) {
                 <td className={styles.tableCellMuted}>{order.store}</td>
                 <td className={styles.tableCell}>{order.quantity}</td>
                 <td className={styles.tableCell}>{formatAzn(order.total)}</td>
+                <td className={styles.tableCellMuted}>{paymentLabel(order.payment)}</td>
                 <td className={styles.tableCell}>
                   <OrderStatusBadge status={order.status} />
                 </td>

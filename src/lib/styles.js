@@ -41,6 +41,7 @@ export const styles = {
   posCart: 'flex min-h-[calc(100svh-3.5rem)] flex-col border-white/10 bg-[#161b22] p-6 xl:border-l',
   posCartLine: 'flex items-center justify-between gap-3 border-b border-white/10 py-4 text-sm',
   posQtyButton: 'h-8 w-8 rounded-full border border-white/20 text-white',
+  posPayRow: 'grid grid-cols-2 gap-2',
   posPayButton: 'w-full rounded-2xl bg-emerald-400 px-4 py-4 text-base font-semibold text-neutral-950',
   posGhostButton: 'w-full rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80',
   form: 'space-y-4',

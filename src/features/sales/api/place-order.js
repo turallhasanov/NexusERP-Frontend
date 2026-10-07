@@ -4,7 +4,7 @@ import { deductStock, getProduct } from '@/store/inventory-store'
 import { getStore } from '@/store/stores-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
-export function placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice }) {
+export function placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice, payment }) {
   const isRetail = type === 'retail'
   const store = isRetail ? getStore(storeId) : null
 
@@ -46,6 +46,7 @@ export function placeOrder({ type, customerId, storeId, productId, warehouseId, 
     product: product.name,
     quantity,
     unitPrice,
+    payment,
   })
 
   return { ok: true }

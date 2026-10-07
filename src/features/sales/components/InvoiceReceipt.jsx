@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { formatAzn } from '@/lib/money'
+import { paymentLabel } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 import { useOrdersStore } from '@/store/orders-store'
 
@@ -39,6 +40,10 @@ export function InvoiceReceipt() {
           <div className={styles.definitionRow}>
             <dt>Mağaza</dt>
             <dd className={styles.definitionValue}>{latest.store}</dd>
+          </div>
+          <div className={styles.definitionRow}>
+            <dt>Ödəniş</dt>
+            <dd className={styles.definitionValue}>{paymentLabel(latest.payment)}</dd>
           </div>
           <div className={styles.definitionRow}>
             <dt>Məbləğ</dt>
