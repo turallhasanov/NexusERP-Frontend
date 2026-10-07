@@ -1,11 +1,6 @@
 import { formatAzn } from '@/lib/money'
 import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
-import { downloadPdf } from '@/lib/pdf'
-import { printHtmlDocument } from '@/lib/print-document'
-
-function escapeHtml(value) {
-  return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-}
+import { openPdf } from '@/lib/pdf'
 
 export function buildSalesDekont(order) {
   const rows = [
@@ -34,40 +29,9 @@ export function buildSalesDekont(order) {
   }
 }
 
-export function printSalesDekont(order) {
+export function openSalesDekontPdf(order) {
   const { title, rows } = buildSalesDekont(order)
-  const body = rows
-    .map(
-      (row) =>
-        `<div class="row"><dt>${escapeHtml(row.label)}</dt><dd>${escapeHtml(row.value)}</dd></div>`,
-    )
-    .join('')
-
-  printHtmlDocument(`<!DOCTYPE html>
-<html lang="az">
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(title)}</title>
-    <style>
-      body { font-family: Arial, sans-serif; color: #111; margin: 48px; }
-      p { margin: 0 0 8px; letter-spacing: 0.2em; font-size: 12px; color: #666; }
-      h1 { margin: 0 0 24px; font-size: 22px; }
-      .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e5e5; }
-      dt { color: #555; }
-      dd { margin: 0; font-weight: 600; }
-    </style>
-  </head>
-  <body>
-    <p>NEXUSERP</p>
-    <h1>${escapeHtml(title)}</h1>
-    <dl>${body}</dl>
-  </body>
-</html>`)
-}
-
-export function downloadSalesDekontPdf(order) {
-  const { title, rows } = buildSalesDekont(order)
-  downloadPdf(
+  return openPdf(
     `${order.number}.pdf`,
     title,
     rows.map((row) => `${row.label}: ${row.value}`),
