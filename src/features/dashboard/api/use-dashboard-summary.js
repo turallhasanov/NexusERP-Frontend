@@ -10,6 +10,7 @@ export function useDashboardSummary() {
   const { expenses } = useFinanceStore()
 
   const openOrders = orders.length
+  const productCount = products.length
   const criticalStock = products.filter(
     (product) => product.quantity <= product.minQuantity,
   ).length
@@ -21,6 +22,7 @@ export function useDashboardSummary() {
 
   return {
     openOrders,
+    productCount,
     criticalStock,
     revenue,
     expenseTotal,
