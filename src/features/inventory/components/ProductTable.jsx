@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { StockAlertBadge } from '@/features/inventory/components/StockAlertBadge'
+import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function ProductTable({ products, warehouses = [] }) {
@@ -10,6 +11,8 @@ export function ProductTable({ products, warehouses = [] }) {
           <tr>
             <th className={styles.tableHeadCell}>Məhsul</th>
             <th className={styles.tableHeadCell}>Anbar kodu</th>
+            <th className={styles.tableHeadCell}>Barkod</th>
+            <th className={styles.tableHeadCell}>Qiymət</th>
             {warehouses.map((warehouse) => (
               <th key={warehouse.id} className={styles.tableHeadCell}>
                 {warehouse.name}
@@ -24,6 +27,8 @@ export function ProductTable({ products, warehouses = [] }) {
             <tr key={product.id} className={styles.tableRow}>
               <td className={styles.tableCell}>{product.name}</td>
               <td className={styles.tableCellMuted}>{product.sku}</td>
+              <td className={styles.tableCellMuted}>{product.barcode}</td>
+              <td className={styles.tableCell}>{formatAzn(product.unitPrice)}</td>
               {warehouses.map((warehouse) => (
                 <td key={warehouse.id} className={styles.tableCellMuted}>
                   {product.stocks[warehouse.id] ?? 0}

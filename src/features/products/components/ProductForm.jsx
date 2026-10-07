@@ -8,6 +8,8 @@ import { styles } from '@/lib/styles'
 
 const EMPTY_FORM = {
   name: '',
+  barcode: '',
+  unitPrice: '',
   quantity: 1,
   minQuantity: 1,
 }
@@ -29,11 +31,23 @@ export function ProductForm() {
     event.preventDefault()
 
     const name = form.name.trim()
+    const barcode = form.barcode.trim()
+    const unitPrice = Number(form.unitPrice)
     const quantity = Number(form.quantity)
     const minQuantity = Number(form.minQuantity)
 
     if (!name) {
       setError('Məhsul adı tələb olunur.')
+      return
+    }
+
+    if (!barcode) {
+      setError('Barkod tələb olunur.')
+      return
+    }
+
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      setError('Qiymət 0-dan böyük olmalıdır.')
       return
     }
 
@@ -47,7 +61,13 @@ export function ProductForm() {
       return
     }
 
-    createProduct({ name, quantity, minQuantity })
+    const result = createProduct({ name, barcode, unitPrice, quantity, minQuantity })
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
     setForm(EMPTY_FORM)
     setError('')
   }
@@ -61,6 +81,23 @@ export function ProductForm() {
               value={form.name}
               onChange={updateField('name')}
               placeholder="Məhsul adı"
+            />
+          </Field>
+          <Field label="Barkod">
+            <Input
+              value={form.barcode}
+              onChange={updateField('barcode')}
+              placeholder="2000001000000"
+            />
+          </Field>
+          <Field label="Qiymət (₼)">
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.unitPrice}
+              onChange={updateField('unitPrice')}
+              placeholder="0.00"
             />
           </Field>
           <Field label="Say">

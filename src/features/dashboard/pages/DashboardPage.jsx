@@ -6,16 +6,33 @@ import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function DashboardPage() {
-  const { openOrders, productCount, customerCount, criticalStock, revenue, expenseTotal, balance, headcount, onLeave } =
-    useDashboardSummary()
+  const {
+    wholesaleOpen,
+    retailOpen,
+    productCount,
+    customerCount,
+    storeCount,
+    purchaseCount,
+    criticalStock,
+    wholesaleRevenue,
+    retailRevenue,
+    expenseTotal,
+    balance,
+    headcount,
+    onLeave,
+  } = useDashboardSummary()
   useDocumentTitle('İdarə paneli')
 
   const cards = [
-    { label: 'Açıq sifariş', value: String(openOrders) },
+    { label: 'Açıq toptan', value: String(wholesaleOpen) },
+    { label: 'Açıq pərakəndə', value: String(retailOpen) },
     { label: 'Kritik ehtiyat', value: String(criticalStock) },
     { label: 'Məhsul sayı', value: String(productCount) },
     { label: 'Kontragent sayı', value: String(customerCount) },
-    { label: 'Bu günkü mədaxil', value: formatAzn(revenue) },
+    { label: 'Mağaza sayı', value: String(storeCount) },
+    { label: 'Alış sayı', value: String(purchaseCount) },
+    { label: 'Toptan mədaxil', value: formatAzn(wholesaleRevenue) },
+    { label: 'Pərakəndə mədaxil', value: formatAzn(retailRevenue) },
     { label: 'Bu günkü məxaric', value: formatAzn(expenseTotal) },
     { label: 'Bu günkü qalıq', value: formatAzn(balance) },
     { label: 'İşçi sayı', value: String(headcount) },
