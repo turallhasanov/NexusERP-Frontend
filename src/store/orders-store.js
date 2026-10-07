@@ -25,7 +25,7 @@ export function subscribeOrders(listener) {
   }
 }
 
-export function addOrder({ type, customer, voen, warehouse, store, product, quantity, unitPrice }) {
+export function addOrder({ type, customer, voen, warehouse, store, product, quantity, unitPrice, payment }) {
   const order = {
     id: String(nextSequence),
     number: `SAT-2026-${String(nextSequence).padStart(3, '0')}`,
@@ -37,6 +37,7 @@ export function addOrder({ type, customer, voen, warehouse, store, product, quan
     product,
     quantity,
     unitPrice,
+    payment: payment ?? '—',
     total: quantity * unitPrice,
     status: 'open',
   }

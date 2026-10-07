@@ -7,6 +7,7 @@ import { PosScanner } from '@/features/pos/components/PosScanner'
 import { PosStorePicker } from '@/features/pos/components/PosStorePicker'
 import { useStores } from '@/features/stores/api/use-stores'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 import { getProductByBarcode } from '@/store/inventory-store'
 
@@ -17,6 +18,7 @@ export function PosPage() {
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [payment, setPayment] = useState(PAYMENT_CASH)
   const scannerRef = useRef(null)
   const selectedStore = stores.find((store) => store.id === storeId)
   const catalog = usePosCatalog(selectedStore?.warehouseId)
@@ -141,7 +143,7 @@ export function PosPage() {
   }
 
   function checkout() {
-    const result = checkoutPos({ storeId, lines: cart })
+    const result = checkoutPos({ storeId, lines: cart, payment })
 
     if (!result.ok) {
       setError(result.error)
@@ -181,6 +183,8 @@ export function PosPage() {
           error={error}
           notice={notice}
           storeName={selectedStore?.name}
+          payment={payment}
+          onPaymentChange={setPayment}
           onChangeQty={changeQty}
           onClear={() => {
             setCart([])
