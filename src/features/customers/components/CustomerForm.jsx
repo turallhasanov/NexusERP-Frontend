@@ -8,6 +8,7 @@ import { styles } from '@/lib/styles'
 
 const EMPTY_FORM = {
   name: '',
+  voen: '',
 }
 
 export function CustomerForm() {
@@ -27,13 +28,14 @@ export function CustomerForm() {
     event.preventDefault()
 
     const name = form.name.trim()
+    const voen = form.voen.trim()
 
-    if (!name) {
-      setError('Kontragent adı tələb olunur.')
+    if (!name || !voen) {
+      setError('Ad və VÖEN tələb olunur.')
       return
     }
 
-    createCustomer({ name })
+    createCustomer({ name, voen })
     setForm(EMPTY_FORM)
     setError('')
   }
@@ -47,6 +49,13 @@ export function CustomerForm() {
               value={form.name}
               onChange={updateField('name')}
               placeholder="Şirkətin adı"
+            />
+          </Field>
+          <Field label="VÖEN">
+            <Input
+              value={form.voen}
+              onChange={updateField('voen')}
+              placeholder="1400000001"
             />
           </Field>
         </div>

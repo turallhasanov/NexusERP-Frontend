@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Ad', 'Kod']
+const TABLE_COLUMNS = ['Ad', 'VÖEN', 'Kod']
 
 export function CustomerTable({ customers }) {
   return (
@@ -20,6 +20,7 @@ export function CustomerTable({ customers }) {
           {customers.map((customer) => (
             <tr key={customer.id} className={styles.tableRow}>
               <td className={styles.tableCell}>{customer.name}</td>
+              <td className={styles.tableCellMuted}>{customer.voen}</td>
               <td className={styles.tableCellMuted}>{customer.code}</td>
             </tr>
           ))}
