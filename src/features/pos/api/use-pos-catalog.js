@@ -13,6 +13,7 @@ export function usePosCatalog(warehouseId) {
     id: product.id,
     name: product.name,
     sku: product.sku,
+    barcode: product.barcode,
     unitPrice: DEMO_PRICES[product.id] ?? 1,
     stock: warehouseId ? (product.stocks[warehouseId] ?? 0) : 0,
   }))

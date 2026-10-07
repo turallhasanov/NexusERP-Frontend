@@ -1,14 +1,23 @@
 import { cn } from '@/lib/cn'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
+import { PosBarcodeMark } from '@/features/pos/components/PosBarcodeMark'
 
 export function PosProductGrid({ products, storeId, onAdd }) {
   if (!storeId) {
-    return <p className={styles.pageDescription}>Kassanı açmaq üçün mağaza seçin.</p>
+    return (
+      <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-white/15 px-6 py-16 text-center text-white/50">
+        Kassanı açmaq üçün mağaza seçin. Sonra barkodu oxudun və ya məhsula toxunun.
+      </div>
+    )
   }
 
   if (products.length === 0) {
-    return <p className={styles.pageDescription}>Kataloqda məhsul yoxdur.</p>
+    return (
+      <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-white/15 px-6 py-16 text-center text-white/50">
+        Bu axtarışa uyğun məhsul yoxdur.
+      </div>
+    )
   }
 
   return (
@@ -24,12 +33,15 @@ export function PosProductGrid({ products, storeId, onAdd }) {
             className={cn(styles.posTile, disabled ? styles.posTileMuted : styles.posTileIdle)}
             onClick={() => onAdd(product)}
           >
-            <p className={styles.summaryLabel}>{product.sku}</p>
-            <p className={styles.sectionTitle}>{product.name}</p>
-            <div className={styles.definitionRow}>
-              <span className={styles.summaryLabel}>Stok {product.stock}</span>
-              <span className={styles.sectionTitle}>{formatAzn(product.unitPrice)}</span>
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs tracking-wide text-white/45">{product.sku}</p>
+              <span className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white/70">
+                Stok {product.stock}
+              </span>
             </div>
+            <p className="text-lg font-semibold leading-tight">{product.name}</p>
+            <PosBarcodeMark code={product.barcode} />
+            <p className="text-2xl font-semibold tracking-tight text-emerald-300">{formatAzn(product.unitPrice)}</p>
           </button>
         )
       })}

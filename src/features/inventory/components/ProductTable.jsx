@@ -10,6 +10,7 @@ export function ProductTable({ products, warehouses = [] }) {
           <tr>
             <th className={styles.tableHeadCell}>Məhsul</th>
             <th className={styles.tableHeadCell}>Anbar kodu</th>
+            <th className={styles.tableHeadCell}>Barkod</th>
             {warehouses.map((warehouse) => (
               <th key={warehouse.id} className={styles.tableHeadCell}>
                 {warehouse.name}
@@ -24,6 +25,7 @@ export function ProductTable({ products, warehouses = [] }) {
             <tr key={product.id} className={styles.tableRow}>
               <td className={styles.tableCell}>{product.name}</td>
               <td className={styles.tableCellMuted}>{product.sku}</td>
+              <td className={styles.tableCellMuted}>{product.barcode}</td>
               {warehouses.map((warehouse) => (
                 <td key={warehouse.id} className={styles.tableCellMuted}>
                   {product.stocks[warehouse.id] ?? 0}
