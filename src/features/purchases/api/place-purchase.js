@@ -1,8 +1,15 @@
+import { getCustomer } from '@/store/customers-store'
 import { addPurchase } from '@/store/purchases-store'
 import { getProduct, receiveStock } from '@/store/inventory-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
-export function placePurchase({ productId, warehouseId, quantity, unitPrice }) {
+export function placePurchase({ customerId, productId, warehouseId, quantity, unitPrice }) {
+  const customer = getCustomer(customerId)
+
+  if (!customer) {
+    return { ok: false, error: 'Kontragent tapılmadı.' }
+  }
+
   const product = getProduct(productId)
 
   if (!product) {
@@ -22,6 +29,7 @@ export function placePurchase({ productId, warehouseId, quantity, unitPrice }) {
   }
 
   addPurchase({
+    customer: customer.name,
     product: product.name,
     warehouse: warehouse.name,
     quantity,

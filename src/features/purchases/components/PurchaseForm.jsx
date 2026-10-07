@@ -5,10 +5,12 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { placePurchase } from '@/features/purchases/api/place-purchase'
 import { styles } from '@/lib/styles'
+import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
 import { useWarehousesStore } from '@/store/warehouses-store'
 
 const EMPTY_FORM = {
+  customerId: '',
   productId: '',
   warehouseId: '',
   quantity: 1,
@@ -16,6 +18,7 @@ const EMPTY_FORM = {
 }
 
 export function PurchaseForm() {
+  const { customers } = useCustomersStore()
   const { products } = useInventoryStore()
   const { warehouses } = useWarehousesStore()
   const [form, setForm] = useState(EMPTY_FORM)
@@ -33,13 +36,14 @@ export function PurchaseForm() {
   function handleSubmit(event) {
     event.preventDefault()
 
+    const customerId = form.customerId
     const productId = form.productId
     const warehouseId = form.warehouseId
     const quantity = Number(form.quantity)
     const unitPrice = Number(form.unitPrice)
 
-    if (!productId || !warehouseId) {
-      setError('Məhsul və depo tələb olunur.')
+    if (!customerId || !productId || !warehouseId) {
+      setError('Kontragent, məhsul və depo tələb olunur.')
       return
     }
 
@@ -53,7 +57,7 @@ export function PurchaseForm() {
       return
     }
 
-    const result = placePurchase({ productId, warehouseId, quantity, unitPrice })
+    const result = placePurchase({ customerId, productId, warehouseId, quantity, unitPrice })
 
     if (!result.ok) {
       setError(result.error)
@@ -68,6 +72,20 @@ export function PurchaseForm() {
     <Card>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
+          <Field label="Kontragent">
+            <select
+              className={styles.input}
+              value={form.customerId}
+              onChange={updateField('customerId')}
+            >
+              <option value="">Kontragenti seçin</option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Məhsul">
             <select
               className={styles.input}
