@@ -2,9 +2,9 @@ import { useSyncExternalStore } from 'react'
 import { getWarehouse } from '@/store/warehouses-store'
 
 const INITIAL_PRODUCTS = [
-  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', barcode: '2000001000012', quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
-  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', barcode: '2000001000142', quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
-  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', barcode: '2000001000326', quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
+  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', barcode: '2000001000012', unitPrice: 9, quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
+  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', barcode: '2000001000142', unitPrice: 28, quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
+  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', barcode: '2000001000326', unitPrice: 4.5, quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
 ]
 
 let nextSequence = INITIAL_PRODUCTS.length + 1
@@ -88,7 +88,7 @@ export function deductStock(productId, warehouseId, quantity) {
   return { ok: true }
 }
 
-export function addProduct({ name, barcode, quantity, minQuantity }) {
+export function addProduct({ name, barcode, unitPrice, quantity, minQuantity }) {
   const code = barcode.trim()
 
   if (!code) {
@@ -99,11 +99,16 @@ export function addProduct({ name, barcode, quantity, minQuantity }) {
     return { ok: false, error: 'Bu barkod artıq var.' }
   }
 
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    return { ok: false, error: 'Qiymət 0-dan böyük olmalıdır.' }
+  }
+
   const product = {
     id: String(nextSequence),
     name,
     sku: `STK-${String(nextSequence).padStart(3, '0')}`,
     barcode: code,
+    unitPrice,
     quantity,
     minQuantity,
     stocks: { '1': quantity },
