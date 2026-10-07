@@ -6,6 +6,8 @@ const INITIAL_PRODUCTS = [
   { id: '3', name: 'Bağlama lenti', sku: 'STK-032', quantity: 54, minQuantity: 20 },
 ]
 
+let nextSequence = INITIAL_PRODUCTS.length + 1
+
 let state = {
   products: INITIAL_PRODUCTS,
 }
@@ -51,6 +53,22 @@ export function deductStock(productId, quantity) {
         : item,
     ),
   }
+  emit()
+
+  return { ok: true }
+}
+
+export function addProduct({ name, quantity, minQuantity }) {
+  const product = {
+    id: String(nextSequence),
+    name,
+    sku: `STK-${String(nextSequence).padStart(3, '0')}`,
+    quantity,
+    minQuantity,
+  }
+
+  nextSequence += 1
+  state = { products: [product, ...state.products] }
   emit()
 
   return { ok: true }
