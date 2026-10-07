@@ -29,6 +29,10 @@ export function InvoiceReceipt() {
             <dd className={styles.definitionValue}>{latest.product}</dd>
           </div>
           <div className={styles.definitionRow}>
+            <dt>Depo</dt>
+            <dd className={styles.definitionValue}>{latest.warehouse}</dd>
+          </div>
+          <div className={styles.definitionRow}>
             <dt>Məbləğ</dt>
             <dd className={styles.definitionValue}>{formatAzn(latest.total)}</dd>
           </div>

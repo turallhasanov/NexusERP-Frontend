@@ -31,6 +31,7 @@ export function placeOrder({ customerId, productId, warehouseId, quantity, unitP
   addOrder({
     customer: customer.name,
     voen: customer.voen,
+    warehouse: warehouse.name,
     product: product.name,
     quantity,
     unitPrice,
