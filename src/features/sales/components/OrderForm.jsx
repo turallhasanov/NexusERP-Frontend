@@ -7,10 +7,12 @@ import { placeOrder } from '@/features/sales/api/place-order'
 import { styles } from '@/lib/styles'
 import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
+import { useWarehousesStore } from '@/store/warehouses-store'
 
 const EMPTY_FORM = {
   customerId: '',
   productId: '',
+  warehouseId: '',
   quantity: 1,
   unitPrice: '',
 }
@@ -18,6 +20,7 @@ const EMPTY_FORM = {
 export function OrderForm() {
   const { customers } = useCustomersStore()
   const { products } = useInventoryStore()
+  const { warehouses } = useWarehousesStore()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
 
@@ -35,11 +38,12 @@ export function OrderForm() {
 
     const customerId = form.customerId
     const productId = form.productId
+    const warehouseId = form.warehouseId
     const quantity = Number(form.quantity)
     const unitPrice = Number(form.unitPrice)
 
-    if (!customerId || !productId) {
-      setError('Kontragent və məhsul tələb olunur.')
+    if (!customerId || !productId || !warehouseId) {
+      setError('Kontragent, məhsul və depo tələb olunur.')
       return
     }
 
@@ -53,7 +57,7 @@ export function OrderForm() {
       return
     }
 
-    const result = placeOrder({ customerId, productId, quantity, unitPrice })
+    const result = placeOrder({ customerId, productId, warehouseId, quantity, unitPrice })
 
     if (!result.ok) {
       setError(result.error)
@@ -91,7 +95,21 @@ export function OrderForm() {
               <option value="">Məhsulu seçin</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} ({product.quantity})
+                  {product.name} ({form.warehouseId ? (product.stocks[form.warehouseId] ?? 0) : product.quantity})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Depo">
+            <select
+              className={styles.input}
+              value={form.warehouseId}
+              onChange={updateField('warehouseId')}
+            >
+              <option value="">Depo seçin</option>
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
                 </option>
               ))}
             </select>

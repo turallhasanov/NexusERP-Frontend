@@ -36,21 +36,36 @@ export function getProduct(productId) {
   return state.products.find((product) => product.id === productId) ?? null
 }
 
-export function deductStock(productId, quantity) {
+export function deductStock(productId, warehouseId, quantity) {
   const product = getProduct(productId)
 
   if (!product) {
     return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
   }
 
-  if (product.quantity < quantity) {
-    return { ok: false, error: `Anbarda yalnız ${product.quantity} ədəd var.` }
+  const warehouse = getWarehouse(warehouseId)
+
+  if (!warehouse) {
+    return { ok: false, error: 'Depo tapılmadı.' }
+  }
+
+  const available = product.stocks[warehouseId] ?? 0
+
+  if (available < quantity) {
+    return { ok: false, error: `Bu depoda yalnız ${available} ədəd var.` }
   }
 
   state = {
     products: state.products.map((item) =>
       item.id === productId
-        ? { ...item, quantity: item.quantity - quantity, stocks: takeFromStocks(item.stocks, quantity) }
+        ? {
+            ...item,
+            quantity: item.quantity - quantity,
+            stocks: {
+              ...item.stocks,
+              [warehouseId]: available - quantity,
+            },
+          }
         : item,
     ),
   }
@@ -106,24 +121,6 @@ export function receiveStock(productId, warehouseId, quantity) {
   emit()
 
   return { ok: true }
-}
-
-function takeFromStocks(stocks, quantity) {
-  const next = { ...stocks }
-  let remaining = quantity
-
-  for (const warehouseId of Object.keys(next)) {
-    if (remaining === 0) {
-      break
-    }
-
-    const available = next[warehouseId]
-    const take = available > remaining ? remaining : available
-    next[warehouseId] = available - take
-    remaining -= take
-  }
-
-  return next
 }
 
 export function useInventoryStore() {
