@@ -1,69 +1,34 @@
 import { Card } from '@/components/ui/card'
-import { formatAzn } from '@/lib/money'
-import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
+import { buildSalesDekont, downloadSalesDekontPdf, printSalesDekont } from '@/features/sales/api/sales-dekont'
 import { styles } from '@/lib/styles'
-import { useOrdersStore } from '@/store/orders-store'
 
-export function InvoiceReceipt() {
-  const { orders } = useOrdersStore()
-  const latest = orders[0]
+export function InvoiceReceipt({ order }) {
+  const dekont = order ? buildSalesDekont(order) : null
 
   return (
     <Card className="text-sm">
-      <h2 className={styles.sectionTitle}>Son qaimə qaralaması</h2>
-      {latest ? (
-        <dl className={styles.definitionList}>
-          <div className={styles.definitionRow}>
-            <dt>Qaimə №</dt>
-            <dd className={styles.definitionValue}>{latest.number}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Növ</dt>
-            <dd className={styles.definitionValue}>{latest.type === 'retail' ? 'Pərakəndə' : 'Toptan'}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Kontragent</dt>
-            <dd className={styles.definitionValue}>{latest.customer}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>VÖEN</dt>
-            <dd className={styles.definitionValue}>{latest.voen}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Məhsul</dt>
-            <dd className={styles.definitionValue}>{latest.product}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Depo</dt>
-            <dd className={styles.definitionValue}>{latest.warehouse}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Mağaza</dt>
-            <dd className={styles.definitionValue}>{latest.store}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Ödəniş</dt>
-            <dd className={styles.definitionValue}>{paymentLabel(latest.payment)}</dd>
-          </div>
-          <div className={styles.definitionRow}>
-            <dt>Məbləğ</dt>
-            <dd className={styles.definitionValue}>{formatAzn(latest.total)}</dd>
-          </div>
-          {latest.payment === PAYMENT_CASH && Number.isFinite(latest.tendered) && Number.isFinite(latest.change) ? (
-            <>
-              <div className={styles.definitionRow}>
-                <dt>Verilən</dt>
-                <dd className={styles.definitionValue}>{formatAzn(latest.tendered)}</dd>
+      <h2 className={styles.sectionTitle}>Satış dekontu</h2>
+      {dekont ? (
+        <>
+          <dl className={styles.definitionList}>
+            {dekont.rows.map((row) => (
+              <div key={row.label} className={styles.definitionRow}>
+                <dt>{row.label}</dt>
+                <dd className={styles.definitionValue}>{row.value}</dd>
               </div>
-              <div className={styles.definitionRow}>
-                <dt>Qalıq</dt>
-                <dd className={styles.definitionValue}>{formatAzn(latest.change)}</dd>
-              </div>
-            </>
-          ) : null}
-        </dl>
+            ))}
+          </dl>
+          <div className={styles.dekontActions}>
+            <button type="button" className={styles.headerAction} onClick={() => printSalesDekont(order)}>
+              Yazdır
+            </button>
+            <button type="button" className={styles.headerAction} onClick={() => downloadSalesDekontPdf(order)}>
+              PDF
+            </button>
+          </div>
+        </>
       ) : (
-        <p className={styles.pageDescription}>Qaralama üçün əvvəlcə sifariş yazın.</p>
+        <p className={styles.pageDescription}>Dekont üçün əvvəlcə sifariş yazın.</p>
       )}
     </Card>
   )

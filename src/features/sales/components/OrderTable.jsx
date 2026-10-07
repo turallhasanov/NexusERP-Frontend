@@ -7,7 +7,7 @@ import { styles } from '@/lib/styles'
 
 const TABLE_COLUMNS = ['Qaimə', 'Növ', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Mağaza', 'Say', 'Məbləğ', 'Ödəniş', 'Status', 'Əməliyyat']
 
-export function OrderTable({ orders }) {
+export function OrderTable({ orders, onView }) {
   return (
     <Card padded={false}>
       <table className={styles.table}>
@@ -44,13 +44,18 @@ export function OrderTable({ orders }) {
                   <OrderStatusBadge status={order.status} />
                 </td>
                 <td className={styles.tableCell}>
-                  <button
-                    type="button"
-                    className={styles.headerAction}
-                    onClick={() => setOrderStatus(order.id)}
-                  >
-                    {order.status === 'open' ? 'Bağla' : 'Yenidən aç'}
-                  </button>
+                  <div className="flex flex-wrap gap-3">
+                    <button type="button" className={styles.headerAction} onClick={() => onView(order.id)}>
+                      Bax
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.headerAction}
+                      onClick={() => setOrderStatus(order.id)}
+                    >
+                      {order.status === 'open' ? 'Bağla' : 'Yenidən aç'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
