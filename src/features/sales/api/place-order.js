@@ -23,6 +23,7 @@ export function placeOrder({ customerId, productId, quantity, unitPrice }) {
 
   addOrder({
     customer: customer.name,
+    voen: customer.voen,
     product: product.name,
     quantity,
     unitPrice,
