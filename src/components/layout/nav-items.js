@@ -5,6 +5,7 @@ export const navItems = [
   { label: 'Anbar', href: routes.inventory },
   { label: 'Məhsul', href: routes.products },
   { label: 'Kontragent', href: routes.customers },
+  { label: 'Alış', href: routes.purchases },
   { label: 'Satış', href: routes.sales },
   { label: 'İnsan resursları', href: routes.hr },
   { label: 'Maliyyə', href: routes.finance },
