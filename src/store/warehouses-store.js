@@ -31,6 +31,10 @@ export function subscribeWarehouses(listener) {
   }
 }
 
+export function getWarehouse(warehouseId) {
+  return state.warehouses.find((warehouse) => warehouse.id === warehouseId) ?? null
+}
+
 export function addWarehouse({ name }) {
   const warehouse = {
     id: String(nextSequence),

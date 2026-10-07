@@ -6,14 +6,17 @@ import { Input } from '@/components/ui/input'
 import { addStock } from '@/features/inventory/api/receive-stock'
 import { styles } from '@/lib/styles'
 import { useInventoryStore } from '@/store/inventory-store'
+import { useWarehousesStore } from '@/store/warehouses-store'
 
 const EMPTY_FORM = {
   productId: '',
+  warehouseId: '',
   quantity: 1,
 }
 
 export function ReceiveStockForm() {
   const { products } = useInventoryStore()
+  const { warehouses } = useWarehousesStore()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
 
@@ -30,10 +33,11 @@ export function ReceiveStockForm() {
     event.preventDefault()
 
     const productId = form.productId
+    const warehouseId = form.warehouseId
     const quantity = Number(form.quantity)
 
-    if (!productId) {
-      setError('Məhsul tələb olunur.')
+    if (!productId || !warehouseId) {
+      setError('Məhsul və depo tələb olunur.')
       return
     }
 
@@ -42,7 +46,7 @@ export function ReceiveStockForm() {
       return
     }
 
-    const result = addStock({ productId, quantity })
+    const result = addStock({ productId, warehouseId, quantity })
 
     if (!result.ok) {
       setError(result.error)
@@ -67,6 +71,20 @@ export function ReceiveStockForm() {
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} ({product.quantity})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Depo">
+            <select
+              className={styles.input}
+              value={form.warehouseId}
+              onChange={updateField('warehouseId')}
+            >
+              <option value="">Depo seçin</option>
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
                 </option>
               ))}
             </select>
