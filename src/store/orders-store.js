@@ -34,10 +34,22 @@ export function addOrder({ customer, product, quantity, unitPrice }) {
     quantity,
     unitPrice,
     total: quantity * unitPrice,
+    status: 'open',
   }
 
   nextSequence += 1
   state = { orders: [order, ...state.orders] }
+  emit()
+}
+
+export function toggleOrderStatus(orderId) {
+  state = {
+    orders: state.orders.map((order) =>
+      order.id === orderId
+        ? { ...order, status: order.status === 'open' ? 'closed' : 'open' }
+        : order,
+    ),
+  }
   emit()
 }
 
