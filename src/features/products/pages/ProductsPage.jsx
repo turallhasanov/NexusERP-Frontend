@@ -11,7 +11,7 @@ export function ProductsPage() {
   useDocumentTitle('Məhsul')
 
   return (
-    <PageContainer title="Məhsul" description="Kataloq kartı və anbar kodu.">
+    <PageContainer title="Məhsul" description="Kataloq kartı, anbar kodu və barkod.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Məhsul sayı</p>

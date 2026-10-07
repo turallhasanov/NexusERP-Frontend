@@ -8,6 +8,7 @@ import { styles } from '@/lib/styles'
 
 const EMPTY_FORM = {
   name: '',
+  barcode: '',
   quantity: 1,
   minQuantity: 1,
 }
@@ -29,11 +30,17 @@ export function ProductForm() {
     event.preventDefault()
 
     const name = form.name.trim()
+    const barcode = form.barcode.trim()
     const quantity = Number(form.quantity)
     const minQuantity = Number(form.minQuantity)
 
     if (!name) {
       setError('Məhsul adı tələb olunur.')
+      return
+    }
+
+    if (!barcode) {
+      setError('Barkod tələb olunur.')
       return
     }
 
@@ -47,7 +54,13 @@ export function ProductForm() {
       return
     }
 
-    createProduct({ name, quantity, minQuantity })
+    const result = createProduct({ name, barcode, quantity, minQuantity })
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
     setForm(EMPTY_FORM)
     setError('')
   }
@@ -61,6 +74,13 @@ export function ProductForm() {
               value={form.name}
               onChange={updateField('name')}
               placeholder="Məhsul adı"
+            />
+          </Field>
+          <Field label="Barkod">
+            <Input
+              value={form.barcode}
+              onChange={updateField('barcode')}
+              placeholder="2000001000000"
             />
           </Field>
           <Field label="Say">
