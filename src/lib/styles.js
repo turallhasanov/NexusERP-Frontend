@@ -1,5 +1,5 @@
 export const styles = {
-  shell: 'flex h-svh bg-neutral-100 text-neutral-900',
+  shell: 'flex h-svh bg-neutral-100 text-neutral-900 print:hidden',
   sidebar: 'flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white',
   brand: 'px-4 py-4 text-sm font-semibold tracking-tight',
   nav: 'flex flex-col gap-1 px-2',
@@ -67,5 +67,8 @@ export const styles = {
   definitionRow: 'flex justify-between',
   definitionValue: 'text-neutral-900',
   dekontActions: 'mt-4 flex flex-wrap gap-4',
+  dekontOverlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 print:hidden',
+  dekontSheet: 'max-h-[90vh] w-full max-w-2xl overflow-auto rounded bg-white p-6',
+  dekontPrintRoot: 'hidden print:block p-12 text-sm',
   sectionTitle: 'font-semibold',
 }

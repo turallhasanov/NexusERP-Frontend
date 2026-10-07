@@ -1,4 +1,4 @@
-function toLatinAz(value) {
+function toWinAnsi(value) {
   return String(value)
     .replaceAll('ə', 'e')
     .replaceAll('Ə', 'E')
@@ -15,15 +15,29 @@ function toLatinAz(value) {
     .replaceAll('ğ', 'g')
     .replaceAll('Ğ', 'G')
     .replaceAll('₼', 'AZN')
+    .replaceAll('№', 'No')
+    .replaceAll('—', '-')
+    .replaceAll('–', '-')
     .replaceAll('\u00a0', ' ')
     .replaceAll('\u202f', ' ')
+    .replaceAll(/[^\x20-\x7E]/g, ' ')
 }
 
 function escapePdf(value) {
-  return toLatinAz(value).replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)')
+  return toWinAnsi(value).replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)')
 }
 
-export function downloadPdf(filename, title, lines) {
+function asciiBytes(text) {
+  const bytes = new Uint8Array(text.length)
+
+  for (let index = 0; index < text.length; index += 1) {
+    bytes[index] = text.charCodeAt(index)
+  }
+
+  return bytes
+}
+
+function buildPdfBytes(title, lines) {
   const stream = [
     'BT',
     '/F1 18 Tf',
@@ -42,7 +56,7 @@ export function downloadPdf(filename, title, lines) {
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
     '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
     `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
   ]
 
   let pdf = '%PDF-1.4\n'
@@ -60,11 +74,18 @@ export function downloadPdf(filename, title, lines) {
   })
   pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
 
-  const blob = new Blob([pdf], { type: 'application/pdf' })
+  return asciiBytes(pdf)
+}
+
+export function openPdf(filename, title, lines) {
+  const blob = new Blob([buildPdfBytes(title, lines)], { type: 'application/pdf' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
   link.download = filename
+  document.body.appendChild(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  return url
 }

@@ -1,8 +1,8 @@
 import { Card } from '@/components/ui/card'
-import { buildSalesDekont, downloadSalesDekontPdf, printSalesDekont } from '@/features/sales/api/sales-dekont'
+import { buildSalesDekont } from '@/features/sales/api/sales-dekont'
 import { styles } from '@/lib/styles'
 
-export function InvoiceReceipt({ order }) {
+export function InvoiceReceipt({ order, onView, onPrint, onPdf }) {
   const dekont = order ? buildSalesDekont(order) : null
 
   return (
@@ -19,10 +19,13 @@ export function InvoiceReceipt({ order }) {
             ))}
           </dl>
           <div className={styles.dekontActions}>
-            <button type="button" className={styles.headerAction} onClick={() => printSalesDekont(order)}>
+            <button type="button" className={styles.headerAction} onClick={onView}>
+              Bax
+            </button>
+            <button type="button" className={styles.headerAction} onClick={onPrint}>
               Yazdır
             </button>
-            <button type="button" className={styles.headerAction} onClick={() => downloadSalesDekontPdf(order)}>
+            <button type="button" className={styles.headerAction} onClick={onPdf}>
               PDF
             </button>
           </div>
