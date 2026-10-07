@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from 'react'
+import { getWarehouse } from '@/store/warehouses-store'
 
 const INITIAL_PRODUCTS = [
-  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', quantity: 120, minQuantity: 40 },
-  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', quantity: 8, minQuantity: 10 },
-  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', quantity: 54, minQuantity: 20 },
+  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
+  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
+  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
 ]
 
 let nextSequence = INITIAL_PRODUCTS.length + 1
@@ -49,7 +50,7 @@ export function deductStock(productId, quantity) {
   state = {
     products: state.products.map((item) =>
       item.id === productId
-        ? { ...item, quantity: item.quantity - quantity }
+        ? { ...item, quantity: item.quantity - quantity, stocks: takeFromStocks(item.stocks, quantity) }
         : item,
     ),
   }
@@ -65,6 +66,7 @@ export function addProduct({ name, quantity, minQuantity }) {
     sku: `STK-${String(nextSequence).padStart(3, '0')}`,
     quantity,
     minQuantity,
+    stocks: { '1': quantity },
   }
 
   nextSequence += 1
@@ -74,23 +76,54 @@ export function addProduct({ name, quantity, minQuantity }) {
   return { ok: true }
 }
 
-export function receiveStock(productId, quantity) {
+export function receiveStock(productId, warehouseId, quantity) {
   const product = getProduct(productId)
 
   if (!product) {
     return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
   }
 
+  const warehouse = getWarehouse(warehouseId)
+
+  if (!warehouse) {
+    return { ok: false, error: 'Depo tapılmadı.' }
+  }
+
   state = {
     products: state.products.map((item) =>
       item.id === productId
-        ? { ...item, quantity: item.quantity + quantity }
+        ? {
+            ...item,
+            quantity: item.quantity + quantity,
+            stocks: {
+              ...item.stocks,
+              [warehouseId]: (item.stocks[warehouseId] ?? 0) + quantity,
+            },
+          }
         : item,
     ),
   }
   emit()
 
   return { ok: true }
+}
+
+function takeFromStocks(stocks, quantity) {
+  const next = { ...stocks }
+  let remaining = quantity
+
+  for (const warehouseId of Object.keys(next)) {
+    if (remaining === 0) {
+      break
+    }
+
+    const available = next[warehouseId]
+    const take = available > remaining ? remaining : available
+    next[warehouseId] = available - take
+    remaining -= take
+  }
+
+  return next
 }
 
 export function useInventoryStore() {
