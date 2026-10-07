@@ -8,7 +8,7 @@ import { useDocumentTitle } from '@/hooks/use-document-title'
 import { styles } from '@/lib/styles'
 
 export function SalesPage() {
-  const { orders, openOrders } = useOrders()
+  const { orders, openOrders, closedOrders } = useOrders()
   useDocumentTitle('Satış')
 
   return (
@@ -17,6 +17,10 @@ export function SalesPage() {
         <Card>
           <p className={styles.summaryLabel}>Açıq sifariş</p>
           <p className={styles.summaryValue}>{openOrders}</p>
+        </Card>
+        <Card>
+          <p className={styles.summaryLabel}>Bağlı sifariş</p>
+          <p className={styles.summaryValue}>{closedOrders}</p>
         </Card>
       </div>
       <div className={styles.salesLayout}>
