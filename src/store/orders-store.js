@@ -25,12 +25,13 @@ export function subscribeOrders(listener) {
   }
 }
 
-export function addOrder({ customer, voen, product, quantity, unitPrice }) {
+export function addOrder({ customer, voen, warehouse, product, quantity, unitPrice }) {
   const order = {
     id: String(nextSequence),
     number: `SAT-2026-${String(nextSequence).padStart(3, '0')}`,
     customer,
     voen,
+    warehouse,
     product,
     quantity,
     unitPrice,
