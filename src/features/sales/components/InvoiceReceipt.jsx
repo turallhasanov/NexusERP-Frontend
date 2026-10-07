@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { formatAzn } from '@/lib/money'
-import { paymentLabel } from '@/lib/payment'
+import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 import { useOrdersStore } from '@/store/orders-store'
 
@@ -49,6 +49,18 @@ export function InvoiceReceipt() {
             <dt>Məbləğ</dt>
             <dd className={styles.definitionValue}>{formatAzn(latest.total)}</dd>
           </div>
+          {latest.payment === PAYMENT_CASH && Number.isFinite(latest.tendered) && Number.isFinite(latest.change) ? (
+            <>
+              <div className={styles.definitionRow}>
+                <dt>Verilən</dt>
+                <dd className={styles.definitionValue}>{formatAzn(latest.tendered)}</dd>
+              </div>
+              <div className={styles.definitionRow}>
+                <dt>Qalıq</dt>
+                <dd className={styles.definitionValue}>{formatAzn(latest.change)}</dd>
+              </div>
+            </>
+          ) : null}
         </dl>
       ) : (
         <p className={styles.pageDescription}>Qaralama üçün əvvəlcə sifariş yazın.</p>

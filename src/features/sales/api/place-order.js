@@ -5,7 +5,7 @@ import { deductStock, getProduct } from '@/store/inventory-store'
 import { getStore } from '@/store/stores-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
-export function placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice, payment }) {
+export function placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice, payment, tendered, change }) {
   if (payment !== PAYMENT_CASH && payment !== PAYMENT_CARD) {
     return { ok: false, error: 'Ödəniş növü tələb olunur.' }
   }
@@ -52,6 +52,8 @@ export function placeOrder({ type, customerId, storeId, productId, warehouseId, 
     quantity,
     unitPrice,
     payment,
+    tendered,
+    change,
   })
 
   return { ok: true }

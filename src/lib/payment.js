@@ -12,3 +12,11 @@ export function paymentLabel(payment) {
 
   return '—'
 }
+
+export function cashChange(total, tendered) {
+  if (!Number.isFinite(total) || !Number.isFinite(tendered) || tendered < total) {
+    return null
+  }
+
+  return tendered - total
+}
