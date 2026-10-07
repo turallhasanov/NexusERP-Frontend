@@ -9,6 +9,7 @@ import { styles } from '@/lib/styles'
 const EMPTY_FORM = {
   name: '',
   barcode: '',
+  unitPrice: '',
   quantity: 1,
   minQuantity: 1,
 }
@@ -31,6 +32,7 @@ export function ProductForm() {
 
     const name = form.name.trim()
     const barcode = form.barcode.trim()
+    const unitPrice = Number(form.unitPrice)
     const quantity = Number(form.quantity)
     const minQuantity = Number(form.minQuantity)
 
@@ -44,6 +46,11 @@ export function ProductForm() {
       return
     }
 
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      setError('Qiymət 0-dan böyük olmalıdır.')
+      return
+    }
+
     if (!Number.isFinite(quantity) || quantity < 1) {
       setError('Say ən azı 1 olmalıdır.')
       return
@@ -54,7 +61,7 @@ export function ProductForm() {
       return
     }
 
-    const result = createProduct({ name, barcode, quantity, minQuantity })
+    const result = createProduct({ name, barcode, unitPrice, quantity, minQuantity })
 
     if (!result.ok) {
       setError(result.error)
@@ -81,6 +88,16 @@ export function ProductForm() {
               value={form.barcode}
               onChange={updateField('barcode')}
               placeholder="2000001000000"
+            />
+          </Field>
+          <Field label="Qiymət (₼)">
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.unitPrice}
+              onChange={updateField('unitPrice')}
+              placeholder="0.00"
             />
           </Field>
           <Field label="Say">
