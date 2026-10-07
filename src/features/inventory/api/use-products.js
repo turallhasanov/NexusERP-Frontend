@@ -5,6 +5,9 @@ export function useProducts() {
 
   return {
     products,
+    criticalStock: products.filter(
+      (product) => product.quantity <= product.minQuantity,
+    ).length,
     isLoading: false,
   }
 }
