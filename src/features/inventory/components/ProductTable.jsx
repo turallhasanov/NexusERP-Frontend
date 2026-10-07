@@ -2,19 +2,21 @@ import { Card } from '@/components/ui/card'
 import { StockAlertBadge } from '@/features/inventory/components/StockAlertBadge'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Məhsul', 'Anbar kodu', 'Miqdar', 'Status']
-
-export function ProductTable({ products }) {
+export function ProductTable({ products, warehouses = [] }) {
   return (
     <Card padded={false}>
       <table className={styles.table}>
         <thead className={styles.tableHead}>
           <tr>
-            {TABLE_COLUMNS.map((column) => (
-              <th key={column} className={styles.tableHeadCell}>
-                {column}
+            <th className={styles.tableHeadCell}>Məhsul</th>
+            <th className={styles.tableHeadCell}>Anbar kodu</th>
+            {warehouses.map((warehouse) => (
+              <th key={warehouse.id} className={styles.tableHeadCell}>
+                {warehouse.name}
               </th>
             ))}
+            <th className={styles.tableHeadCell}>Miqdar</th>
+            <th className={styles.tableHeadCell}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -22,6 +24,11 @@ export function ProductTable({ products }) {
             <tr key={product.id} className={styles.tableRow}>
               <td className={styles.tableCell}>{product.name}</td>
               <td className={styles.tableCellMuted}>{product.sku}</td>
+              {warehouses.map((warehouse) => (
+                <td key={warehouse.id} className={styles.tableCellMuted}>
+                  {product.stocks[warehouse.id] ?? 0}
+                </td>
+              ))}
               <td className={styles.tableCell}>{product.quantity}</td>
               <td className={styles.tableCell}>
                 <StockAlertBadge

@@ -30,7 +30,7 @@ export function InventoryPage() {
       <WarehouseForm />
       <WarehouseTable warehouses={warehouses} />
       <ReceiveStockForm />
-      <ProductTable products={products} />
+      <ProductTable products={products} warehouses={warehouses} />
     </PageContainer>
   )
 }
