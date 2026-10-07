@@ -1,9 +1,16 @@
+import { getAuthState } from '@/store/auth-store'
 import { getCustomer } from '@/store/customers-store'
 import { addPurchase } from '@/store/purchases-store'
 import { getProduct, receiveStock } from '@/store/inventory-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
 export function placePurchase({ customerId, productId, warehouseId, quantity, unitPrice }) {
+  const { user } = getAuthState()
+
+  if (!user) {
+    return { ok: false, error: 'İstifadəçi tapılmadı.' }
+  }
+
   const customer = getCustomer(customerId)
 
   if (!customer) {
@@ -32,6 +39,7 @@ export function placePurchase({ customerId, productId, warehouseId, quantity, un
     customer: customer.name,
     product: product.name,
     warehouse: warehouse.name,
+    user: user.name,
     quantity,
     unitPrice,
   })
