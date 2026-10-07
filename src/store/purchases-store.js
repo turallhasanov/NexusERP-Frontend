@@ -25,10 +25,11 @@ export function subscribePurchases(listener) {
   }
 }
 
-export function addPurchase({ product, warehouse, quantity, unitPrice }) {
+export function addPurchase({ customer, product, warehouse, quantity, unitPrice }) {
   const purchase = {
     id: String(nextSequence),
     number: `ALŞ-2026-${String(nextSequence).padStart(3, '0')}`,
+    customer,
     product,
     warehouse,
     quantity,

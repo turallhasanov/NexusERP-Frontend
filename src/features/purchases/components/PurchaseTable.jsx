@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Məhsul', 'Depo', 'Say', 'Məbləğ']
+const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'Məhsul', 'Depo', 'Say', 'Məbləğ']
 
 export function PurchaseTable({ purchases }) {
   return (
@@ -28,6 +28,7 @@ export function PurchaseTable({ purchases }) {
             purchases.map((purchase) => (
               <tr key={purchase.id} className={styles.tableRow}>
                 <td className={styles.tableCell}>{purchase.number}</td>
+                <td className={styles.tableCell}>{purchase.customer}</td>
                 <td className={styles.tableCellMuted}>{purchase.product}</td>
                 <td className={styles.tableCellMuted}>{purchase.warehouse}</td>
                 <td className={styles.tableCell}>{purchase.quantity}</td>
