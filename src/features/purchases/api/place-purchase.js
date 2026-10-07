@@ -37,6 +37,7 @@ export function placePurchase({ customerId, productId, warehouseId, quantity, un
 
   addPurchase({
     customer: customer.name,
+    voen: customer.voen,
     product: product.name,
     warehouse: warehouse.name,
     user: user.name,

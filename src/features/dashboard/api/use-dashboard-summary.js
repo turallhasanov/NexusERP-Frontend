@@ -16,6 +16,7 @@ export function useDashboardSummary() {
   const openOrders = orders.filter((order) => order.status === 'open').length
   const productCount = products.length
   const customerCount = customers.length
+  const purchaseCount = purchases.length
   const criticalStock = products.filter(
     (product) => product.quantity <= product.minQuantity,
   ).length
@@ -30,6 +31,7 @@ export function useDashboardSummary() {
     openOrders,
     productCount,
     customerCount,
+    purchaseCount,
     criticalStock,
     revenue,
     expenseTotal,
