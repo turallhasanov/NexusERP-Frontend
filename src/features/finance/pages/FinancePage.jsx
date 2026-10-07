@@ -13,7 +13,7 @@ export function FinancePage() {
   useDocumentTitle('Maliyyə')
 
   return (
-    <PageContainer title="Maliyyə" description="Satış mədaxili, ofis məxarici və günün qalığı.">
+    <PageContainer title="Maliyyə" description="Satış mədaxili, alış məxarici və günün qalığı.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Bu günkü mədaxil</p>
