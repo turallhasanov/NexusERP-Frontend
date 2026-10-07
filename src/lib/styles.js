@@ -66,5 +66,6 @@ export const styles = {
   definitionList: 'mt-3 grid gap-2 text-neutral-600',
   definitionRow: 'flex justify-between',
   definitionValue: 'text-neutral-900',
+  dekontActions: 'mt-4 flex flex-wrap gap-4',
   sectionTitle: 'font-semibold',
 }

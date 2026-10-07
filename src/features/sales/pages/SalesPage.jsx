@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
@@ -11,6 +12,8 @@ import { styles } from '@/lib/styles'
 
 export function SalesPage() {
   const { orders, openOrders, closedOrders } = useOrders()
+  const [selectedId, setSelectedId] = useState('')
+  const selectedOrder = orders.find((order) => order.id === selectedId) ?? orders[0]
   useDocumentTitle('Satış')
 
   return (
@@ -35,9 +38,9 @@ export function SalesPage() {
       </div>
       <div className={styles.salesLayout}>
         <OrderForm />
-        <InvoiceReceipt />
+        <InvoiceReceipt order={selectedOrder} />
       </div>
-      <OrderTable orders={orders} />
+      <OrderTable orders={orders} onView={setSelectedId} />
     </PageContainer>
   )
 }
