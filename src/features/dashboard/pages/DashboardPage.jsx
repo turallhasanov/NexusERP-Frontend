@@ -6,7 +6,7 @@ import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function DashboardPage() {
-  const { openOrders, criticalStock, revenue, expenseTotal, headcount, onLeave } =
+  const { openOrders, criticalStock, revenue, expenseTotal, balance, headcount, onLeave } =
     useDashboardSummary()
   useDocumentTitle('İdarə paneli')
 
@@ -15,6 +15,7 @@ export function DashboardPage() {
     { label: 'Kritik ehtiyat', value: String(criticalStock) },
     { label: 'Bu günkü mədaxil', value: formatAzn(revenue) },
     { label: 'Bu günkü məxaric', value: formatAzn(expenseTotal) },
+    { label: 'Bu günkü qalıq', value: formatAzn(balance) },
     { label: 'İşçi sayı', value: String(headcount) },
     { label: 'Məzuniyyətdə', value: String(onLeave) },
   ]
