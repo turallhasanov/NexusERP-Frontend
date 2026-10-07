@@ -8,6 +8,7 @@ export const navItems = [
   { label: 'Kontragent', href: routes.customers },
   { label: 'Alış', href: routes.purchases },
   { label: 'Satış', href: routes.sales },
+  { label: 'POS', href: routes.pos },
   { label: 'İnsan resursları', href: routes.hr },
   { label: 'Maliyyə', href: routes.finance },
 ]
