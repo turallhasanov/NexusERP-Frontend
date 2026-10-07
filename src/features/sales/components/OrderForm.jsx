@@ -34,11 +34,20 @@ export function OrderForm() {
   function updateField(field) {
     return (event) => {
       const value = event.target.value
-      setForm((current) => ({
-        ...current,
-        [field]: value,
-        ...(field === 'type' ? { storeId: '', warehouseId: '', customerId: '' } : {}),
-      }))
+      setForm((current) => {
+        const next = {
+          ...current,
+          [field]: value,
+          ...(field === 'type' ? { storeId: '', warehouseId: '', customerId: '' } : {}),
+        }
+
+        if (field === 'productId') {
+          const product = products.find((item) => item.id === value)
+          next.unitPrice = product ? String(product.unitPrice) : ''
+        }
+
+        return next
+      })
     }
   }
 
