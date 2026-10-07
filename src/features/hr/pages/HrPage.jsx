@@ -7,15 +7,19 @@ import { useDocumentTitle } from '@/hooks/use-document-title'
 import { styles } from '@/lib/styles'
 
 export function HrPage() {
-  const { employees, headcount } = useEmployees()
+  const { employees, headcount, onLeave } = useEmployees()
   useDocumentTitle('İnsan resursları')
 
   return (
-    <PageContainer title="İnsan resursları" description="Yeni işçi girişi və kadr siyahısı.">
+    <PageContainer title="İnsan resursları" description="Kadr siyahısı və məzuniyyət statusu.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>İşçi sayı</p>
           <p className={styles.summaryValue}>{headcount}</p>
+        </Card>
+        <Card>
+          <p className={styles.summaryLabel}>Məzuniyyətdə</p>
+          <p className={styles.summaryValue}>{onLeave}</p>
         </Card>
       </div>
       <EmployeeForm />

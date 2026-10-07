@@ -45,6 +45,17 @@ export function addEmployee({ name, title, department }) {
   emit()
 }
 
+export function toggleEmployeeLeave(employeeId) {
+  state = {
+    employees: state.employees.map((employee) =>
+      employee.id === employeeId
+        ? { ...employee, status: employee.status === 'active' ? 'leave' : 'active' }
+        : employee,
+    ),
+  }
+  emit()
+}
+
 export function useHrStore() {
   return useSyncExternalStore(subscribeHr, getHrState, getHrState)
 }

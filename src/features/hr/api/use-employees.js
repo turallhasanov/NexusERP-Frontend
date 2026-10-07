@@ -6,5 +6,6 @@ export function useEmployees() {
   return {
     employees,
     headcount: employees.length,
+    onLeave: employees.filter((employee) => employee.status === 'leave').length,
   }
 }
