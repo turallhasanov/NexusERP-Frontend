@@ -15,6 +15,7 @@ export function useDashboardSummary() {
   ).length
   const revenue = orders.reduce((sum, order) => sum + order.total, 0)
   const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+  const balance = revenue - expenseTotal
   const headcount = employees.length
   const onLeave = employees.filter((employee) => employee.status === 'leave').length
 
@@ -23,6 +24,7 @@ export function useDashboardSummary() {
     criticalStock,
     revenue,
     expenseTotal,
+    balance,
     headcount,
     onLeave,
   }
