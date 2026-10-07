@@ -3,9 +3,23 @@ import { formatAzn } from '@/lib/money'
 import { PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 
-export function PosCart({ cart, error, notice, storeName, payment, onPaymentChange, onChangeQty, onClear, onCheckout }) {
+export function PosCart({
+  cart,
+  error,
+  notice,
+  storeName,
+  payment,
+  tendered,
+  change,
+  onPaymentChange,
+  onTenderedChange,
+  onChangeQty,
+  onClear,
+  onCheckout,
+}) {
   const total = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0)
+  const isCash = payment === PAYMENT_CASH
 
   return (
     <aside className={styles.posCart}>
@@ -56,7 +70,7 @@ export function PosCart({ cart, error, notice, storeName, payment, onPaymentChan
         <div className={styles.posPayRow}>
           <button
             type="button"
-            className={cn(styles.posStoreChip, payment === PAYMENT_CASH ? styles.posStoreChipActive : styles.posStoreChipIdle)}
+            className={cn(styles.posStoreChip, isCash ? styles.posStoreChipActive : styles.posStoreChipIdle)}
             onClick={() => onPaymentChange(PAYMENT_CASH)}
           >
             Nağd
@@ -69,6 +83,26 @@ export function PosCart({ cart, error, notice, storeName, payment, onPaymentChan
             Kart
           </button>
         </div>
+        {isCash ? (
+          <div className={styles.posTender}>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-sm text-white/45">Verilən</span>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className={styles.posTenderInput}
+                value={tendered}
+                onChange={(event) => onTenderedChange(event.target.value)}
+                placeholder="0.00"
+              />
+            </label>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/45">Qalıq</span>
+              <span className="text-lg font-semibold">{change == null ? '—' : formatAzn(change)}</span>
+            </div>
+          </div>
+        ) : null}
         <button type="button" className={styles.posPayButton} onClick={onCheckout}>
           Satışı tamamla
         </button>
