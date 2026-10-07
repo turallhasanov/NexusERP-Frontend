@@ -1,9 +1,9 @@
 import { Card } from '@/components/ui/card'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Ad', 'VÖEN', 'Kod']
+const TABLE_COLUMNS = ['Ad', 'Kod']
 
-export function CustomerTable({ customers }) {
+export function WarehouseTable({ warehouses }) {
   return (
     <Card padded={false}>
       <table className={styles.table}>
@@ -17,11 +17,10 @@ export function CustomerTable({ customers }) {
           </tr>
         </thead>
         <tbody>
-          {customers.map((customer) => (
-            <tr key={customer.id} className={styles.tableRow}>
-              <td className={styles.tableCell}>{customer.name}</td>
-              <td className={styles.tableCellMuted}>{customer.voen}</td>
-              <td className={styles.tableCellMuted}>{customer.code}</td>
+          {warehouses.map((warehouse) => (
+            <tr key={warehouse.id} className={styles.tableRow}>
+              <td className={styles.tableCell}>{warehouse.name}</td>
+              <td className={styles.tableCellMuted}>{warehouse.code}</td>
             </tr>
           ))}
         </tbody>

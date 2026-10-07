@@ -3,15 +3,14 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { createCustomer } from '@/features/customers/api/create-customer'
+import { createWarehouse } from '@/features/inventory/api/create-warehouse'
 import { styles } from '@/lib/styles'
 
 const EMPTY_FORM = {
   name: '',
-  voen: '',
 }
 
-export function CustomerForm() {
+export function WarehouseForm() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
 
@@ -28,14 +27,13 @@ export function CustomerForm() {
     event.preventDefault()
 
     const name = form.name.trim()
-    const voen = form.voen.trim()
 
-    if (!name || !voen) {
-      setError('Ad və VÖEN tələb olunur.')
+    if (!name) {
+      setError('Depo adı tələb olunur.')
       return
     }
 
-    createCustomer({ name, voen })
+    createWarehouse({ name })
     setForm(EMPTY_FORM)
     setError('')
   }
@@ -48,19 +46,12 @@ export function CustomerForm() {
             <Input
               value={form.name}
               onChange={updateField('name')}
-              placeholder="Şirkətin adı"
-            />
-          </Field>
-          <Field label="VÖEN">
-            <Input
-              value={form.voen}
-              onChange={updateField('voen')}
-              placeholder="1400000001"
+              placeholder="Mərkəzi anbar"
             />
           </Field>
         </div>
         {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">Kontragenti yadda saxla</Button>
+        <Button type="submit">Depo yadda saxla</Button>
       </form>
     </Card>
   )

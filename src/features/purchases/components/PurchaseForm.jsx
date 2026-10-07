@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { placeOrder } from '@/features/sales/api/place-order'
+import { placePurchase } from '@/features/purchases/api/place-purchase'
 import { styles } from '@/lib/styles'
 import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
@@ -17,7 +17,7 @@ const EMPTY_FORM = {
   unitPrice: '',
 }
 
-export function OrderForm() {
+export function PurchaseForm() {
   const { customers } = useCustomersStore()
   const { products } = useInventoryStore()
   const { warehouses } = useWarehousesStore()
@@ -57,7 +57,7 @@ export function OrderForm() {
       return
     }
 
-    const result = placeOrder({ customerId, productId, warehouseId, quantity, unitPrice })
+    const result = placePurchase({ customerId, productId, warehouseId, quantity, unitPrice })
 
     if (!result.ok) {
       setError(result.error)
@@ -134,7 +134,7 @@ export function OrderForm() {
           </Field>
         </div>
         {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">Sifarişi yadda saxla</Button>
+        <Button type="submit">Alışı yadda saxla</Button>
       </form>
     </Card>
   )

@@ -1,9 +1,16 @@
+import { getAuthState } from '@/store/auth-store'
 import { getCustomer } from '@/store/customers-store'
-import { addOrder } from '@/store/orders-store'
-import { deductStock, getProduct } from '@/store/inventory-store'
+import { addPurchase } from '@/store/purchases-store'
+import { getProduct, receiveStock } from '@/store/inventory-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
-export function placeOrder({ customerId, productId, warehouseId, quantity, unitPrice }) {
+export function placePurchase({ customerId, productId, warehouseId, quantity, unitPrice }) {
+  const { user } = getAuthState()
+
+  if (!user) {
+    return { ok: false, error: 'İstifadəçi tapılmadı.' }
+  }
+
   const customer = getCustomer(customerId)
 
   if (!customer) {
@@ -22,17 +29,17 @@ export function placeOrder({ customerId, productId, warehouseId, quantity, unitP
     return { ok: false, error: 'Depo tapılmadı.' }
   }
 
-  const stock = deductStock(productId, warehouseId, quantity)
+  const stock = receiveStock(productId, warehouseId, quantity)
 
   if (!stock.ok) {
     return stock
   }
 
-  addOrder({
+  addPurchase({
     customer: customer.name,
-    voen: customer.voen,
-    warehouse: warehouse.name,
     product: product.name,
+    warehouse: warehouse.name,
+    user: user.name,
     quantity,
     unitPrice,
   })

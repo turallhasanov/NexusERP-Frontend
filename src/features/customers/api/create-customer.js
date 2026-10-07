@@ -1,5 +1,5 @@
 import { addCustomer } from '@/store/customers-store'
 
-export function createCustomer({ name }) {
-  return addCustomer({ name })
+export function createCustomer({ name, voen }) {
+  return addCustomer({ name, voen })
 }

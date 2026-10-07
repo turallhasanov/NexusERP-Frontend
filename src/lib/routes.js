@@ -4,6 +4,7 @@ export const routes = {
   inventory: '/inventory',
   products: '/products',
   customers: '/customers',
+  purchases: '/purchases',
   sales: '/sales',
   hr: '/hr',
   finance: '/finance',
