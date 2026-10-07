@@ -11,7 +11,7 @@ export function useDashboardSummary() {
   const { employees } = useHrStore()
   const { expenses } = useFinanceStore()
 
-  const openOrders = orders.length
+  const openOrders = orders.filter((order) => order.status === 'open').length
   const productCount = products.length
   const customerCount = customers.length
   const criticalStock = products.filter(
