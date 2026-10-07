@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'Məhsul', 'Növ', 'Məbləğ']
+const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Növ', 'Məbləğ']
 
 export function IncomeTable({ entries }) {
   return (
@@ -29,6 +29,7 @@ export function IncomeTable({ entries }) {
               <tr key={entry.id} className={styles.tableRow}>
                 <td className={styles.tableCell}>{entry.number}</td>
                 <td className={styles.tableCell}>{entry.customer}</td>
+                <td className={styles.tableCellMuted}>{entry.voen}</td>
                 <td className={styles.tableCellMuted}>{entry.product}</td>
                 <td className={styles.tableCellMuted}>Mədaxil</td>
                 <td className={styles.tableCell}>{formatAzn(entry.total)}</td>
