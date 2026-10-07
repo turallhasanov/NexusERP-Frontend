@@ -3,6 +3,7 @@ export const routes = {
   dashboard: '/',
   inventory: '/inventory',
   products: '/products',
+  customers: '/customers',
   sales: '/sales',
   hr: '/hr',
   finance: '/finance',

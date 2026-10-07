@@ -5,16 +5,18 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { placeOrder } from '@/features/sales/api/place-order'
 import { styles } from '@/lib/styles'
+import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
 
 const EMPTY_FORM = {
-  customer: '',
+  customerId: '',
   productId: '',
   quantity: 1,
   unitPrice: '',
 }
 
 export function OrderForm() {
+  const { customers } = useCustomersStore()
   const { products } = useInventoryStore()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
@@ -31,12 +33,12 @@ export function OrderForm() {
   function handleSubmit(event) {
     event.preventDefault()
 
-    const customer = form.customer.trim()
+    const customerId = form.customerId
     const productId = form.productId
     const quantity = Number(form.quantity)
     const unitPrice = Number(form.unitPrice)
 
-    if (!customer || !productId) {
+    if (!customerId || !productId) {
       setError('Kontragent və məhsul tələb olunur.')
       return
     }
@@ -51,7 +53,7 @@ export function OrderForm() {
       return
     }
 
-    const result = placeOrder({ customer, productId, quantity, unitPrice })
+    const result = placeOrder({ customerId, productId, quantity, unitPrice })
 
     if (!result.ok) {
       setError(result.error)
@@ -67,11 +69,18 @@ export function OrderForm() {
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
           <Field label="Kontragent">
-            <Input
-              value={form.customer}
-              onChange={updateField('customer')}
-              placeholder="Şirkətin adı"
-            />
+            <select
+              className={styles.input}
+              value={form.customerId}
+              onChange={updateField('customerId')}
+            >
+              <option value="">Kontragenti seçin</option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Məhsul">
             <select

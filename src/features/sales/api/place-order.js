@@ -1,7 +1,14 @@
+import { getCustomer } from '@/store/customers-store'
 import { addOrder } from '@/store/orders-store'
 import { deductStock, getProduct } from '@/store/inventory-store'
 
-export function placeOrder({ customer, productId, quantity, unitPrice }) {
+export function placeOrder({ customerId, productId, quantity, unitPrice }) {
+  const customer = getCustomer(customerId)
+
+  if (!customer) {
+    return { ok: false, error: 'Kontragent tapılmadı.' }
+  }
+
   const product = getProduct(productId)
 
   if (!product) {
@@ -15,7 +22,7 @@ export function placeOrder({ customer, productId, quantity, unitPrice }) {
   }
 
   addOrder({
-    customer,
+    customer: customer.name,
     product: product.name,
     quantity,
     unitPrice,
