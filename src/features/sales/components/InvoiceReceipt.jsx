@@ -17,6 +17,10 @@ export function InvoiceReceipt() {
             <dd className={styles.definitionValue}>{latest.number}</dd>
           </div>
           <div className={styles.definitionRow}>
+            <dt>Növ</dt>
+            <dd className={styles.definitionValue}>{latest.type === 'retail' ? 'Pərakəndə' : 'Toptan'}</dd>
+          </div>
+          <div className={styles.definitionRow}>
             <dt>Kontragent</dt>
             <dd className={styles.definitionValue}>{latest.customer}</dd>
           </div>
@@ -31,6 +35,10 @@ export function InvoiceReceipt() {
           <div className={styles.definitionRow}>
             <dt>Depo</dt>
             <dd className={styles.definitionValue}>{latest.warehouse}</dd>
+          </div>
+          <div className={styles.definitionRow}>
+            <dt>Mağaza</dt>
+            <dd className={styles.definitionValue}>{latest.store}</dd>
           </div>
           <div className={styles.definitionRow}>
             <dt>Məbləğ</dt>
