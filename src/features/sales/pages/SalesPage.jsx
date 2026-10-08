@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
-import { openSalesDekontPdf } from '@/features/sales/api/sales-dekont'
-import { DekontPreview, DekontPrintRoot } from '@/features/sales/components/DekontPreview'
+import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
+import { buildSalesDekont, openSalesDekontPdf } from '@/features/sales/api/sales-dekont'
 import { InvoiceReceipt } from '@/features/sales/components/InvoiceReceipt'
 import { OrderForm } from '@/features/sales/components/OrderForm'
 import { OrderTable } from '@/features/sales/components/OrderTable'
@@ -17,6 +17,7 @@ export function SalesPage() {
   const [selectedId, setSelectedId] = useState('')
   const [preview, setPreview] = useState(false)
   const selectedOrder = orders.find((order) => order.id === selectedId) ?? orders[0]
+  const dekont = selectedOrder ? buildSalesDekont(selectedOrder) : null
   useDocumentTitle('Satış')
 
   function viewOrder(orderId) {
@@ -63,8 +64,10 @@ export function SalesPage() {
         />
       </div>
       <OrderTable orders={orders} onView={viewOrder} />
-      {preview ? <DekontPreview order={selectedOrder} onClose={() => setPreview(false)} /> : null}
-      <DekontPrintRoot order={selectedOrder} />
+      {preview ? (
+        <DekontPreview title="Satış dekontu" dekont={dekont} onClose={() => setPreview(false)} />
+      ) : null}
+      <DekontPrintRoot dekont={dekont} />
     </PageContainer>
   )
 }
