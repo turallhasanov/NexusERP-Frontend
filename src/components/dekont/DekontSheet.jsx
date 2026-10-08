@@ -107,9 +107,12 @@ export function DekontSheet({ dekont }) {
         ) : (
           <dl className={styles.definitionList}>
             {(dekont.rows ?? []).map((row) => (
-              <div key={row.label} className={styles.definitionRow}>
+              <div
+                key={row.label}
+                className={row.strong ? 'flex justify-between text-base font-semibold' : styles.definitionRow}
+              >
                 <dt>{row.label}</dt>
-                <dd className={styles.definitionValue}>{row.value}</dd>
+                <dd className={row.strong ? undefined : styles.definitionValue}>{row.value}</dd>
               </div>
             ))}
           </dl>

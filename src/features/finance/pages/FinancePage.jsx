@@ -20,9 +20,9 @@ import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 const PDF_NAMES = {
-  balance: 'bilanco.pdf',
-  mizan: 'ayliq-mizan.pdf',
-  store: 'magaza-mizani.pdf',
+  balance: 'balans-hesabati.pdf',
+  mizan: 'mizan-hesabati.pdf',
+  store: 'magaza-mizan-hesabati.pdf',
 }
 
 export function FinancePage() {
@@ -69,7 +69,7 @@ export function FinancePage() {
     <PageContainer title="Maliyyə" description="Satış mədaxili, alış məxarici və maaş fondu.">
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className={styles.sectionTitle}>Günün bilançosu</h2>
+          <h2 className={styles.sectionTitle}>Balans hesabatı</h2>
           <FinanceReportActions
             onView={() => viewReport('balance')}
             onPrint={() => printReport('balance')}
