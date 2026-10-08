@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn'
 import { formatAzn } from '@/lib/money'
-import { PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
+import { CASH_NOTES, PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 
 export function PosCart({
@@ -24,6 +24,12 @@ export function PosCart({
   const total = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0)
   const isCash = payment === PAYMENT_CASH
+  const tenderedAmount = Number(tendered)
+
+  function addNote(amount) {
+    const current = Number.isFinite(tenderedAmount) ? tenderedAmount : 0
+    onTenderedChange(String(current + amount))
+  }
 
   return (
     <aside className={styles.posCart}>
@@ -50,7 +56,10 @@ export function PosCart({
                   <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, -1)}>
                     −
                   </button>
-                  <span className="w-5 text-center">{line.quantity}</span>
+                  <span className="min-w-8 text-center tabular-nums">
+                    {line.quantity}
+                    {line.unitName ? ` ${line.unitName}` : ''}
+                  </span>
                   <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, 1)}>
                     +
                   </button>
@@ -89,13 +98,37 @@ export function PosCart({
         </div>
         {isCash ? (
           <div className={styles.posTender}>
-            <label className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-sm text-white/45">Verilən</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold tabular-nums">
+                  {Number.isFinite(tenderedAmount) ? formatAzn(tenderedAmount) : formatAzn(0)}
+                </span>
+                {tendered !== '' ? (
+                  <button
+                    type="button"
+                    className="text-xs text-white/40 hover:text-white"
+                    onClick={() => onTenderedChange('')}
+                  >
+                    Sıfırla
+                  </button>
+                ) : null}
+              </div>
+            </div>
+            <div className={styles.posNoteGrid}>
+              {CASH_NOTES.map((note) => (
+                <button key={note} type="button" className={styles.posNoteButton} onClick={() => addNote(note)}>
+                  {note}
+                </button>
+              ))}
+            </div>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm text-white/45">Əl ilə</span>
               <input
                 type="number"
                 min={0}
                 step="0.01"
-                className={styles.posTenderInput}
+                className={styles.posTenderManual}
                 value={tendered}
                 onChange={(event) => onTenderedChange(event.target.value)}
                 placeholder="0.00"

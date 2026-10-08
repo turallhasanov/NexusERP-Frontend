@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
 import { DEMO_USER, setAuthUser } from '@/store/auth-store'
+import { getCompanyState } from '@/store/company-store'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ export function LoginForm() {
     }
 
     setAuthUser(DEMO_USER)
-    navigate(routes.dashboard, { replace: true })
+    navigate(getCompanyState().company ? routes.dashboard : routes.setup, { replace: true })
   }
 
   return (

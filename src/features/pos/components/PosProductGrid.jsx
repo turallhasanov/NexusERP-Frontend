@@ -34,9 +34,9 @@ export function PosProductGrid({ products, storeId, onAdd }) {
             onClick={() => onAdd(product)}
           >
             <div className="flex items-start justify-between gap-3">
-              <p className="text-xs tracking-wide text-white/45">{product.sku}</p>
+              <p className="text-xs tracking-wide text-white/45">{product.typeName}</p>
               <span className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white/70">
-                Stok {product.stock}
+                Stok {product.stock} {product.unitName}
               </span>
             </div>
             <p className="text-lg font-semibold leading-tight">{product.name}</p>
