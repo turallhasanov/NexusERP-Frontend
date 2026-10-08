@@ -48,6 +48,7 @@ export function addOrder({ type, customer, voen, warehouse, store, product, quan
   nextSequence += 1
   state = { orders: [order, ...state.orders] }
   emit()
+  return order
 }
 
 export function toggleOrderStatus(orderId) {
