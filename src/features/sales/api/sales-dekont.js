@@ -1,8 +1,7 @@
-import { dekontPdfLines } from '@/components/dekont/dekont-pdf'
 import { formatDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
 import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
-import { openPdf } from '@/lib/pdf'
+import { openReportPdf } from '@/lib/pdf'
 
 function cashTotals(order, total) {
   const totals = [{ label: 'Cəm', value: formatAzn(total), strong: true }]
@@ -45,5 +44,5 @@ export function buildSalesDekont(order) {
 
 export function openSalesDekontPdf(order) {
   const dekont = buildSalesDekont(order)
-  return openPdf(`${order.number}.pdf`, dekont.title, dekontPdfLines(dekont))
+  return openReportPdf(`${order.number}.pdf`, dekont)
 }

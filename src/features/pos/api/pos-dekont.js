@@ -1,8 +1,7 @@
-import { dekontPdfLines } from '@/components/dekont/dekont-pdf'
 import { formatDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
 import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
-import { openPdf } from '@/lib/pdf'
+import { openReportPdf } from '@/lib/pdf'
 
 export function buildPosDekont(orders) {
   if (!orders.length) {
@@ -49,5 +48,5 @@ export function openPosDekontPdf(orders) {
     return null
   }
 
-  return openPdf(`${orders[0].number}.pdf`, dekont.title, dekontPdfLines(dekont))
+  return openReportPdf(`${orders[0].number}.pdf`, dekont)
 }

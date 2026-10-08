@@ -13,7 +13,11 @@ export function DekontPreview({ title, dekont, onClose, onPrint, onPdf }) {
       <div
         className={cn(
           styles.dekontSheet,
-          dekont.table ? styles.dekontSheetWide : styles.dekontSheetNarrow,
+          dekont.table?.columns.length > 4
+            ? styles.dekontSheetXWide
+            : dekont.table
+              ? styles.dekontSheetWide
+              : styles.dekontSheetNarrow,
         )}
         onClick={(event) => event.stopPropagation()}
       >

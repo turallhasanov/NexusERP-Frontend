@@ -1,59 +1,37 @@
-function toWinAnsi(value) {
-  return String(value)
-    .replaceAll('ə', 'e')
-    .replaceAll('Ə', 'E')
-    .replaceAll('ı', 'i')
-    .replaceAll('İ', 'I')
-    .replaceAll('ö', 'o')
-    .replaceAll('Ö', 'O')
-    .replaceAll('ü', 'u')
-    .replaceAll('Ü', 'U')
-    .replaceAll('ş', 's')
-    .replaceAll('Ş', 'S')
-    .replaceAll('ç', 'c')
-    .replaceAll('Ç', 'C')
-    .replaceAll('ğ', 'g')
-    .replaceAll('Ğ', 'G')
-    .replaceAll('₼', 'AZN')
-    .replaceAll('№', 'No')
-    .replaceAll('—', '-')
-    .replaceAll('–', '-')
-    .replaceAll('\u00a0', ' ')
-    .replaceAll('\u202f', ' ')
-    .replaceAll(/[^\x20-\x7E]/g, ' ')
-}
+import boldUrl from '@/assets/fonts/NotoSans-Bold.ttf?url'
+import regularUrl from '@/assets/fonts/NotoSans-Regular.ttf?url'
 
-function escapePdf(value) {
-  return toWinAnsi(value).replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)')
-}
+const PAGE_W = 595
+const PAGE_H = 842
+const MARGIN = 40
+const RIGHT_COLUMNS = new Set(['Mədaxil', 'Məxaric', 'Qalıq', 'Məbləğ', 'Qiymət', 'Cəm', 'Say', 'Maaş'])
 
-function asciiBytes(text) {
-  const bytes = new Uint8Array(text.length)
+let fontBuffers
+let pdfLib
 
-  for (let index = 0; index < text.length; index += 1) {
-    bytes[index] = text.charCodeAt(index)
+async function loadPdfLib() {
+  if (!pdfLib) {
+    const [lib, fontkitModule] = await Promise.all([import('pdf-lib'), import('@pdf-lib/fontkit')])
+    pdfLib = {
+      PDFDocument: lib.PDFDocument,
+      rgb: lib.rgb,
+      fontkit: fontkitModule.default ?? fontkitModule,
+    }
   }
 
-  return bytes
+  return pdfLib
 }
 
-function assemblePdf(objects) {
-  let pdf = '%PDF-1.4\n'
-  const offsets = [0]
+async function getFontBuffers() {
+  if (!fontBuffers) {
+    const [regular, bold] = await Promise.all([
+      fetch(regularUrl).then((response) => response.arrayBuffer()),
+      fetch(boldUrl).then((response) => response.arrayBuffer()),
+    ])
+    fontBuffers = { regular, bold }
+  }
 
-  objects.forEach((object, index) => {
-    offsets.push(pdf.length)
-    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`
-  })
-
-  const xref = pdf.length
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
-  offsets.slice(1).forEach((offset) => {
-    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`
-  })
-  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
-
-  return asciiBytes(pdf)
+  return fontBuffers
 }
 
 function downloadPdf(filename, bytes) {
@@ -69,244 +47,237 @@ function downloadPdf(filename, bytes) {
   return url
 }
 
-function charWidth(char) {
-  if (char >= '0' && char <= '9') {
-    return 0.556
-  }
+function clipText(font, value, size, maxWidth) {
+  let shown = String(value ?? '')
 
-  if (char === ' ' || char === ',' || char === '.' || char === ':') {
-    return 0.278
-  }
-
-  if (char === '-') {
-    return 0.333
-  }
-
-  return 0.55
-}
-
-function textWidth(value, size) {
-  return [...toWinAnsi(value)].reduce((sum, char) => sum + charWidth(char) * size, 0)
-}
-
-function clipText(value, size, maxWidth) {
-  let shown = toWinAnsi(value)
-
-  while (shown.length > 1 && textWidth(shown, size) > maxWidth) {
+  while (shown.length > 1 && font.widthOfTextAtSize(shown, size) > maxWidth) {
     shown = `${shown.slice(0, -2)}.`
   }
 
   return shown
 }
 
-function fillRect(x, y, width, height, color) {
-  return `${color} ${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)} re f`
+function columnLayout(columns, left, width) {
+  const rights = columns.map((column) => RIGHT_COLUMNS.has(column))
+  const rightCount = rights.filter(Boolean).length
+  const amountW = 82
+  const leftCount = columns.length - rightCount
+  const rest = width - rightCount * amountW
+  const leftW = leftCount ? rest / leftCount : rest
+  let x = left
+
+  return columns.map((name, index) => {
+    const colWidth = rights[index] ? amountW : leftW
+    const column = { name, x, width: colWidth, align: rights[index] ? 'right' : 'left' }
+    x += colWidth
+    return column
+  })
 }
 
-function strokeRect(x, y, width, height) {
-  return `0.35 w 0.75 0.75 0.75 RG ${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)} re S`
-}
-
-function hLine(x1, x2, y) {
-  return `0.35 w 0.82 0.82 0.82 RG ${x1.toFixed(2)} ${y.toFixed(2)} m ${x2.toFixed(2)} ${y.toFixed(2)} l S`
-}
-
-function drawText(x, y, value, { size = 10, font = 'F1', color = '0 0 0 rg', align = 'left', maxWidth } = {}) {
-  const shown = maxWidth ? clipText(value, size, maxWidth) : toWinAnsi(value)
-  const left = align === 'right' ? x - textWidth(shown, size) : x
-  return `BT /${font} ${size} Tf ${color} 1 0 0 1 ${left.toFixed(2)} ${y.toFixed(2)} Tm (${escapePdf(shown)}) Tj ET`
-}
-
-function columnLayout(count, left, width) {
-  if (count === 5) {
-    const amount = 88
-    const rest = width - amount * 3
-    const store = rest * 0.56
-    const month = rest - store
-    return [
-      { x: left, width: store, align: 'left' },
-      { x: left + store, width: month, align: 'left' },
-      { x: left + store + month, width: amount, align: 'right' },
-      { x: left + store + month + amount, width: amount, align: 'right' },
-      { x: left + store + month + amount * 2, width: amount, align: 'right' },
-    ]
+function cellX(column, padding, font, value, size) {
+  if (column.align === 'right') {
+    return column.x + column.width - padding - font.widthOfTextAtSize(value, size)
   }
 
-  const amount = 100
-  const first = width - amount * 3
-  return [
-    { x: left, width: first, align: 'left' },
-    { x: left + first, width: amount, align: 'right' },
-    { x: left + first + amount, width: amount, align: 'right' },
-    { x: left + first + amount * 2, width: amount, align: 'right' },
-  ]
+  return column.x + padding
 }
 
-function cellX(column, padding) {
-  return column.align === 'right' ? column.x + column.width - padding : column.x + padding
-}
-
-function buildPdfBytes(title, lines) {
-  const stream = [
-    'BT',
-    '/F1 18 Tf',
-    '72 780 Td',
-    `(${escapePdf(title)}) Tj`,
-    '/F1 11 Tf',
-    '0 -24 Td',
-    '(NexusERP) Tj',
-    '0 -28 Td',
-    ...lines.flatMap((line, index) => (index === 0 ? [`(${escapePdf(line)}) Tj`] : [`0 -18 Td (${escapePdf(line)}) Tj`])),
-    'ET',
-  ].join('\n')
-
-  return assemblePdf([
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
-    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
-  ])
-}
-
-function buildReportPdfBytes(dekont) {
-  const pageW = 595
-  const pageH = 842
-  const margin = 40
-  const contentW = pageW - margin * 2
+async function buildReportPdfBytes(dekont) {
+  const { PDFDocument, rgb, fontkit } = await loadPdfLib()
+  const ink = rgb(0.07, 0.08, 0.1)
+  const muted = rgb(0.35, 0.35, 0.35)
+  const line = rgb(0.82, 0.82, 0.82)
+  const white = rgb(1, 1, 1)
+  const accent = rgb(0.2, 0.83, 0.6)
+  const zebra = rgb(0.97, 0.97, 0.97)
+  const pdfDoc = await PDFDocument.create()
+  pdfDoc.registerFontkit(fontkit)
+  const buffers = await getFontBuffers()
+  const regular = await pdfDoc.embedFont(buffers.regular, { subset: true })
+  const bold = await pdfDoc.embedFont(buffers.bold, { subset: true })
+  const contentW = PAGE_W - MARGIN * 2
   const date = dekont.meta?.find((row) => row.label === 'Tarix')?.value ?? ''
-  const ops = []
-
-  ops.push(fillRect(0, 754, pageW, 88, '0.07 0.08 0.1 rg'))
-  ops.push(fillRect(0, 754, pageW, 4, '0.2 0.83 0.6 rg'))
-  ops.push(drawText(margin, 812, 'NEXUSERP', { size: 9, font: 'F2', color: '0.7 0.72 0.74 rg' }))
-  ops.push(drawText(pageW - margin, 812, date, { size: 10, color: '1 1 1 rg', align: 'right' }))
-  ops.push(drawText(margin, 778, dekont.title, { size: 22, font: 'F2', color: '1 1 1 rg' }))
-
+  let page = pdfDoc.addPage([PAGE_W, PAGE_H])
   let y = 718
 
-  if (dekont.table) {
-    const columns = dekont.table.columns
-    const layout = columnLayout(columns.length, margin, contentW)
-    const rowH = 26
-    const tableBottom = Math.max(64, y - rowH * (1 + Math.max(dekont.table.rows.length, 1)))
+  function addPage() {
+    page = pdfDoc.addPage([PAGE_W, PAGE_H])
+    y = 780
+  }
 
-    ops.push(fillRect(margin, tableBottom, contentW, y - tableBottom, '1 1 1 rg'))
-    ops.push(strokeRect(margin, tableBottom, contentW, y - tableBottom))
-    ops.push(fillRect(margin, y - rowH, contentW, rowH, '0.1 0.11 0.13 rg'))
+  function ensure(space) {
+    if (y < space) {
+      addPage()
+    }
+  }
 
-    columns.forEach((column, index) => {
-      const cell = layout[index]
-      const pad = cell.align === 'right' ? 10 : 12
-      ops.push(
-        drawText(cellX(cell, pad), y - 18, column, {
-          size: 8,
-          font: 'F2',
-          color: '1 1 1 rg',
-          align: cell.align,
-          maxWidth: cell.width - 16,
-        }),
-      )
+  function drawText(x, baseline, value, { size = 10, font = regular, color = ink, maxWidth } = {}) {
+    const shown = maxWidth ? clipText(font, value, size, maxWidth) : String(value ?? '')
+    page.drawText(shown, { x, y: baseline, size, font, color })
+  }
+
+  page.drawRectangle({ x: 0, y: 754, width: PAGE_W, height: 88, color: ink })
+  page.drawRectangle({ x: 0, y: 754, width: PAGE_W, height: 4, color: accent })
+  page.drawText('NEXUSERP', { x: MARGIN, y: 812, size: 9, font: bold, color: rgb(0.7, 0.72, 0.74) })
+  if (date) {
+    const shown = clipText(regular, date, 10, 160)
+    page.drawText(shown, {
+      x: PAGE_W - MARGIN - regular.widthOfTextAtSize(shown, 10),
+      y: 812,
+      size: 10,
+      font: regular,
+      color: white,
     })
+  }
+  page.drawText(clipText(bold, dekont.title, 20, contentW), {
+    x: MARGIN,
+    y: 778,
+    size: 20,
+    font: bold,
+    color: white,
+  })
 
+  if (dekont.number) {
+    drawText(MARGIN, y, dekont.number, { size: 10, font: bold, color: muted, maxWidth: contentW })
+    y -= 22
+  }
+
+  for (const row of dekont.meta ?? []) {
+    ensure(80)
+    drawText(MARGIN, y, `${row.label}: ${row.value}`, { size: 10, color: muted, maxWidth: contentW })
+    y -= 16
+  }
+
+  if (dekont.meta?.length) {
+    y -= 8
+  }
+
+  const table =
+    dekont.table ??
+    (dekont.lines?.length
+      ? {
+          columns: ['Məhsul', 'Say', 'Qiymət', 'Cəm'],
+          rows: dekont.lines.map((item) => [item.name, item.qty, item.price, item.total]),
+        }
+      : null)
+
+  if (table) {
+    const layout = columnLayout(table.columns, MARGIN, contentW)
+    const rowH = 24
+    const rows = table.rows.length ? table.rows : [null]
+
+    ensure(80)
+    page.drawRectangle({ x: MARGIN, y: y - rowH, width: contentW, height: rowH, color: ink })
+    table.columns.forEach((column, index) => {
+      const cell = layout[index]
+      const shown = clipText(bold, column, 8, cell.width - 14)
+      drawText(cellX(cell, 8, bold, shown, 8), y - 16, shown, { size: 8, font: bold, color: white })
+    })
     y -= rowH
-    const rows = dekont.table.rows.length ? dekont.table.rows : [null]
 
     rows.forEach((cells, rowIndex) => {
-      const top = y - rowH
+      ensure(70)
       if (rowIndex % 2 === 1) {
-        ops.push(fillRect(margin, top, contentW, rowH, '0.97 0.97 0.97 rg'))
+        page.drawRectangle({ x: MARGIN, y: y - rowH, width: contentW, height: rowH, color: zebra })
       }
 
       if (!cells) {
-        ops.push(
-          drawText(margin + 12, y - 17, dekont.table.empty ?? 'Hele melumat yoxdur.', {
-            size: 10,
-            color: '0.45 0.45 0.45 rg',
-            maxWidth: contentW - 24,
-          }),
-        )
+        drawText(MARGIN + 10, y - 16, table.empty ?? 'Hələ məlumat yoxdur.', {
+          size: 10,
+          color: muted,
+          maxWidth: contentW - 20,
+        })
       } else {
         cells.forEach((value, index) => {
           const cell = layout[index]
-          const pad = cell.align === 'right' ? 10 : 12
-          ops.push(
-            drawText(cellX(cell, pad), y - 17, value, {
-              size: 10,
-              font: cell.align === 'right' ? 'F2' : 'F1',
-              align: cell.align,
-              maxWidth: cell.width - 16,
-            }),
-          )
+          const font = cell.align === 'right' ? bold : regular
+          const shown = clipText(font, value, 9, cell.width - 14)
+          drawText(cellX(cell, 8, font, shown, 9), y - 16, shown, { size: 9, font })
         })
       }
 
       y -= rowH
-      if (rowIndex < rows.length - 1) {
-        ops.push(hLine(margin, margin + contentW, y))
-      }
+      page.drawLine({
+        start: { x: MARGIN, y },
+        end: { x: MARGIN + contentW, y },
+        thickness: 0.4,
+        color: line,
+      })
     })
-  } else {
-    const rows = dekont.rows ?? []
-    const boxH = rows.length * 36 + 16
+
+    y -= 12
+  } else if (dekont.rows?.length) {
+    const boxH = dekont.rows.length * 34 + 12
+    ensure(boxH + 60)
     const boxBottom = y - boxH
+    page.drawRectangle({
+      x: MARGIN,
+      y: boxBottom,
+      width: contentW,
+      height: boxH,
+      borderColor: rgb(0.75, 0.75, 0.75),
+      borderWidth: 0.6,
+    })
 
-    ops.push(fillRect(margin, boxBottom, contentW, boxH, '1 1 1 rg'))
-    ops.push(strokeRect(margin, boxBottom, contentW, boxH))
-
-    rows.forEach((row, index) => {
-      const top = y - 8 - index * 36
-      const textY = top - 22
+    dekont.rows.forEach((row, index) => {
+      const top = y - 6 - index * 34
       if (row.strong) {
-        ops.push(fillRect(margin, top - 36, contentW, 36, '0.07 0.08 0.1 rg'))
-        ops.push(
-          drawText(margin + 16, textY, row.label, {
-            size: 11,
-            font: 'F2',
-            color: '1 1 1 rg',
-            maxWidth: contentW * 0.55,
-          }),
-        )
-        ops.push(
-          drawText(margin + contentW - 16, textY, row.value, {
-            size: 13,
-            font: 'F2',
-            color: '1 1 1 rg',
-            align: 'right',
-          }),
-        )
+        page.drawRectangle({ x: MARGIN, y: top - 34, width: contentW, height: 34, color: ink })
+        drawText(MARGIN + 14, top - 22, row.label, { size: 11, font: bold, color: white, maxWidth: contentW * 0.55 })
+        const shown = clipText(bold, row.value, 12, 180)
+        drawText(MARGIN + contentW - 14 - bold.widthOfTextAtSize(shown, 12), top - 22, shown, {
+          size: 12,
+          font: bold,
+          color: white,
+        })
       } else {
-        ops.push(drawText(margin + 16, textY, row.label, { size: 11, color: '0.35 0.35 0.35 rg', maxWidth: contentW * 0.55 }))
-        ops.push(drawText(margin + contentW - 16, textY, row.value, { size: 12, font: 'F2', align: 'right' }))
-        if (index < rows.length - 1 && !rows[index + 1]?.strong) {
-          ops.push(hLine(margin + 16, margin + contentW - 16, top - 36))
-        }
+        drawText(MARGIN + 14, top - 22, row.label, { size: 11, color: muted, maxWidth: contentW * 0.55 })
+        const shown = clipText(bold, row.value, 11, 180)
+        drawText(MARGIN + contentW - 14 - bold.widthOfTextAtSize(shown, 11), top - 22, shown, { size: 11, font: bold })
       }
     })
 
-    y = boxBottom
+    y = boxBottom - 12
   }
 
-  ops.push(hLine(margin, margin + contentW, 52))
-  ops.push(drawText(margin, 36, dekont.footer ?? 'NexusERP', { size: 8, color: '0.5 0.5 0.5 rg' }))
-  ops.push(drawText(pageW - margin, 36, '1 / 1', { size: 8, color: '0.5 0.5 0.5 rg', align: 'right' }))
+  for (const row of dekont.totals ?? []) {
+    ensure(70)
+    const font = row.strong ? bold : regular
+    const size = row.strong ? 12 : 10
+    drawText(MARGIN, y, row.label, { size, font, color: row.strong ? ink : muted, maxWidth: contentW * 0.55 })
+    const shown = clipText(font, row.value, size, 180)
+    drawText(PAGE_W - MARGIN - font.widthOfTextAtSize(shown, size), y, shown, { size, font })
+    y -= 18
+  }
 
-  const stream = ops.join('\n')
+  page.drawLine({
+    start: { x: MARGIN, y: 52 },
+    end: { x: PAGE_W - MARGIN, y: 52 },
+    thickness: 0.4,
+    color: line,
+  })
+  drawText(MARGIN, 36, dekont.footer ?? 'NexusERP', { size: 8, color: muted, maxWidth: contentW * 0.7 })
+  const pageLabel = `${pdfDoc.getPageCount()} / ${pdfDoc.getPageCount()}`
+  drawText(PAGE_W - MARGIN - regular.widthOfTextAtSize(pageLabel, 8), 36, pageLabel, { size: 8, color: muted })
 
-  return assemblePdf([
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>',
-    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
-  ])
+  return pdfDoc.save()
 }
 
-export function openPdf(filename, title, lines) {
-  return downloadPdf(filename, buildPdfBytes(title, lines))
+export async function openReportPdf(filename, dekont) {
+  const bytes = await buildReportPdfBytes(dekont)
+  return downloadPdf(filename, bytes)
 }
 
-export function openReportPdf(filename, dekont) {
-  return downloadPdf(filename, buildReportPdfBytes(dekont))
+export async function openPdf(filename, title, lines) {
+  return openReportPdf(filename, {
+    title,
+    rows: lines.map((line) => {
+      const index = line.indexOf(': ')
+      if (index === -1) {
+        return { label: line, value: '' }
+      }
+
+      return { label: line.slice(0, index), value: line.slice(index + 2) }
+    }),
+  })
 }
