@@ -9,7 +9,7 @@ export function StoreMizanTable({ rows, onView, onPrint, onPdf }) {
   return (
     <Card padded={false}>
       <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <h2 className={styles.sectionTitle}>Mağaza mizanı</h2>
+        <h2 className={styles.sectionTitle}>Mağaza mizan hesabatı</h2>
         <FinanceReportActions onView={onView} onPrint={onPrint} onPdf={onPdf} />
       </div>
       <table className={styles.table}>
@@ -26,7 +26,7 @@ export function StoreMizanTable({ rows, onView, onPrint, onPdf }) {
           {rows.length === 0 ? (
             <tr>
               <td className={styles.tableEmpty} colSpan={TABLE_COLUMNS.length}>
-                Hələ mağaza mizanı yoxdur.
+                Hələ mağaza mizan hesabatı yoxdur.
               </td>
             </tr>
           ) : (

@@ -9,7 +9,7 @@ export function MizanTable({ months, onView, onPrint, onPdf }) {
   return (
     <Card padded={false}>
       <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <h2 className={styles.sectionTitle}>Aylıq mizan</h2>
+        <h2 className={styles.sectionTitle}>Mizan hesabatı</h2>
         <FinanceReportActions onView={onView} onPrint={onPrint} onPdf={onPdf} />
       </div>
       <table className={styles.table}>
@@ -26,7 +26,7 @@ export function MizanTable({ months, onView, onPrint, onPdf }) {
           {months.length === 0 ? (
             <tr>
               <td className={styles.tableEmpty} colSpan={TABLE_COLUMNS.length}>
-                Hələ aylıq mizan yoxdur.
+                Hələ mizan hesabatı yoxdur.
               </td>
             </tr>
           ) : (
