@@ -1,5 +1,5 @@
 export const styles = {
-  shell: 'flex h-svh bg-neutral-100 text-neutral-900',
+  shell: 'flex h-svh bg-neutral-100 text-neutral-900 print:hidden',
   sidebar: 'flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white',
   brand: 'px-4 py-4 text-sm font-semibold tracking-tight',
   nav: 'flex flex-col gap-1 px-2',
@@ -41,6 +41,9 @@ export const styles = {
   posCart: 'flex min-h-[calc(100svh-3.5rem)] flex-col border-white/10 bg-[#161b22] p-6 xl:border-l',
   posCartLine: 'flex items-center justify-between gap-3 border-b border-white/10 py-4 text-sm',
   posQtyButton: 'h-8 w-8 rounded-full border border-white/20 text-white',
+  posPayRow: 'grid grid-cols-2 gap-2',
+  posTender: 'space-y-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3',
+  posTenderInput: 'w-28 bg-transparent text-right text-lg text-white outline-none placeholder:text-white/35',
   posPayButton: 'w-full rounded-2xl bg-emerald-400 px-4 py-4 text-base font-semibold text-neutral-950',
   posGhostButton: 'w-full rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80',
   form: 'space-y-4',
@@ -63,5 +66,9 @@ export const styles = {
   definitionList: 'mt-3 grid gap-2 text-neutral-600',
   definitionRow: 'flex justify-between',
   definitionValue: 'text-neutral-900',
+  dekontActions: 'mt-4 flex flex-wrap gap-4',
+  dekontOverlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 print:hidden',
+  dekontSheet: 'max-h-[90vh] w-full max-w-2xl overflow-auto rounded bg-white p-6',
+  dekontPrintRoot: 'hidden print:block p-12 text-sm',
   sectionTitle: 'font-semibold',
 }

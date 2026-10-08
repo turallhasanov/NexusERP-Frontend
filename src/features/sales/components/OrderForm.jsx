@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { placeOrder } from '@/features/sales/api/place-order'
+import { PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
@@ -18,6 +19,7 @@ const EMPTY_FORM = {
   warehouseId: '',
   quantity: 1,
   unitPrice: '',
+  payment: PAYMENT_CASH,
 }
 
 export function OrderForm() {
@@ -34,11 +36,20 @@ export function OrderForm() {
   function updateField(field) {
     return (event) => {
       const value = event.target.value
-      setForm((current) => ({
-        ...current,
-        [field]: value,
-        ...(field === 'type' ? { storeId: '', warehouseId: '', customerId: '' } : {}),
-      }))
+      setForm((current) => {
+        const next = {
+          ...current,
+          [field]: value,
+          ...(field === 'type' ? { storeId: '', warehouseId: '', customerId: '' } : {}),
+        }
+
+        if (field === 'productId') {
+          const product = products.find((item) => item.id === value)
+          next.unitPrice = product ? String(product.unitPrice) : ''
+        }
+
+        return next
+      })
     }
   }
 
@@ -52,6 +63,7 @@ export function OrderForm() {
     const warehouseId = form.warehouseId
     const quantity = Number(form.quantity)
     const unitPrice = Number(form.unitPrice)
+    const payment = form.payment
 
     if (type === 'retail' && !storeId) {
       setError('Mağaza tələb olunur.')
@@ -78,7 +90,12 @@ export function OrderForm() {
       return
     }
 
-    const result = placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice })
+    if (payment !== PAYMENT_CASH && payment !== PAYMENT_CARD) {
+      setError('Ödəniş növü tələb olunur.')
+      return
+    }
+
+    const result = placeOrder({ type, customerId, storeId, productId, warehouseId, quantity, unitPrice, payment })
 
     if (!result.ok) {
       setError(result.error)
@@ -161,6 +178,12 @@ export function OrderForm() {
               onChange={updateField('unitPrice')}
               placeholder="0.00"
             />
+          </Field>
+          <Field label="Ödəniş">
+            <select className={styles.input} value={form.payment} onChange={updateField('payment')}>
+              <option value={PAYMENT_CASH}>Nağd</option>
+              <option value={PAYMENT_CARD}>Kart</option>
+            </select>
           </Field>
         </div>
         {error ? <p className={styles.pageDescription}>{error}</p> : null}

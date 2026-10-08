@@ -1,13 +1,13 @@
 import { Card } from '@/components/ui/card'
-import { buildSalesDekont } from '@/features/sales/api/sales-dekont'
+import { buildPurchaseDekont } from '@/features/purchases/api/purchase-dekont'
 import { styles } from '@/lib/styles'
 
-export function InvoiceReceipt({ order, onView, onPrint, onPdf }) {
-  const dekont = order ? buildSalesDekont(order) : null
+export function PurchaseReceipt({ purchase, onView, onPrint, onPdf }) {
+  const dekont = purchase ? buildPurchaseDekont(purchase) : null
 
   return (
     <Card className="text-sm">
-      <h2 className={styles.sectionTitle}>Satış dekontu</h2>
+      <h2 className={styles.sectionTitle}>Alış dekontu</h2>
       {dekont ? (
         <>
           <dl className={styles.definitionList}>
@@ -31,7 +31,7 @@ export function InvoiceReceipt({ order, onView, onPrint, onPdf }) {
           </div>
         </>
       ) : (
-        <p className={styles.pageDescription}>Dekont üçün əvvəlcə sifariş yazın.</p>
+        <p className={styles.pageDescription}>Dekont üçün əvvəlcə alış yazın.</p>
       )}
     </Card>
   )

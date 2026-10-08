@@ -7,6 +7,8 @@ import { PosScanner } from '@/features/pos/components/PosScanner'
 import { PosStorePicker } from '@/features/pos/components/PosStorePicker'
 import { useStores } from '@/features/stores/api/use-stores'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { formatAzn } from '@/lib/money'
+import { cashChange, PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 import { getProductByBarcode } from '@/store/inventory-store'
 
@@ -17,9 +19,13 @@ export function PosPage() {
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [payment, setPayment] = useState(PAYMENT_CASH)
+  const [tendered, setTendered] = useState('')
   const scannerRef = useRef(null)
   const selectedStore = stores.find((store) => store.id === storeId)
   const catalog = usePosCatalog(selectedStore?.warehouseId)
+  const cartTotal = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
+  const change = payment === PAYMENT_CASH ? cashChange(cartTotal, Number(tendered)) : null
   const visibleProducts = useMemo(() => {
     const term = query.trim().toLowerCase()
 
@@ -48,6 +54,7 @@ export function PosPage() {
     setQuery('')
     setError('')
     setNotice('')
+    setTendered('')
   }
 
   function addProduct(product) {
@@ -140,8 +147,14 @@ export function PosPage() {
     )
   }
 
+  function changePayment(nextPayment) {
+    setPayment(nextPayment)
+    setTendered('')
+    setError('')
+  }
+
   function checkout() {
-    const result = checkoutPos({ storeId, lines: cart })
+    const result = checkoutPos({ storeId, lines: cart, payment, tendered: Number(tendered) })
 
     if (!result.ok) {
       setError(result.error)
@@ -149,10 +162,12 @@ export function PosPage() {
       return
     }
 
+    const leftover = result.change
     setCart([])
     setQuery('')
     setError('')
-    setNotice('Satış yazıldı.')
+    setTendered('')
+    setNotice(leftover == null ? 'Satış yazıldı.' : `Satış yazıldı. Qalıq ${formatAzn(leftover)}.`)
   }
 
   return (
@@ -181,11 +196,17 @@ export function PosPage() {
           error={error}
           notice={notice}
           storeName={selectedStore?.name}
+          payment={payment}
+          tendered={tendered}
+          change={change}
+          onPaymentChange={changePayment}
+          onTenderedChange={setTendered}
           onChangeQty={changeQty}
           onClear={() => {
             setCart([])
             setError('')
             setNotice('')
+            setTendered('')
           }}
           onCheckout={checkout}
         />

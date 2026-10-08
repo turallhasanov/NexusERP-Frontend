@@ -2,11 +2,12 @@ import { Card } from '@/components/ui/card'
 import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
 import { setOrderStatus } from '@/features/sales/api/toggle-order-status'
 import { formatAzn } from '@/lib/money'
+import { paymentLabel } from '@/lib/payment'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Növ', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Mağaza', 'Say', 'Məbləğ', 'Status', 'Əməliyyat']
+const TABLE_COLUMNS = ['Qaimə', 'Növ', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'Mağaza', 'Say', 'Məbləğ', 'Ödəniş', 'Status', 'Əməliyyat']
 
-export function OrderTable({ orders }) {
+export function OrderTable({ orders, onView }) {
   return (
     <Card padded={false}>
       <table className={styles.table}>
@@ -38,17 +39,23 @@ export function OrderTable({ orders }) {
                 <td className={styles.tableCellMuted}>{order.store}</td>
                 <td className={styles.tableCell}>{order.quantity}</td>
                 <td className={styles.tableCell}>{formatAzn(order.total)}</td>
+                <td className={styles.tableCellMuted}>{paymentLabel(order.payment)}</td>
                 <td className={styles.tableCell}>
                   <OrderStatusBadge status={order.status} />
                 </td>
                 <td className={styles.tableCell}>
-                  <button
-                    type="button"
-                    className={styles.headerAction}
-                    onClick={() => setOrderStatus(order.id)}
-                  >
-                    {order.status === 'open' ? 'Bağla' : 'Yenidən aç'}
-                  </button>
+                  <div className="flex flex-wrap gap-3">
+                    <button type="button" className={styles.headerAction} onClick={() => onView(order.id)}>
+                      Bax
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.headerAction}
+                      onClick={() => setOrderStatus(order.id)}
+                    >
+                      {order.status === 'open' ? 'Bağla' : 'Yenidən aç'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
