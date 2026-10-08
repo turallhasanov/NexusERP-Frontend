@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { createExpense } from '@/features/finance/api/create-expense'
 import { styles } from '@/lib/styles'
 
-const CATEGORIES = ['Kirayə', 'Kommunal', 'Maaş', 'Təchizat', 'Digər']
+const CATEGORIES = ['Kirayə', 'Kommunal', 'Təchizat', 'Digər']
 
 const EMPTY_FORM = {
   category: '',

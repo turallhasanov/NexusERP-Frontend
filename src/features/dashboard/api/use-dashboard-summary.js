@@ -1,3 +1,5 @@
+import { payrollForMonth } from '@/features/hr/api/payroll'
+import { currentMonthKey } from '@/lib/date'
 import { useCustomersStore } from '@/store/customers-store'
 import { useFinanceStore } from '@/store/finance-store'
 import { useHrStore } from '@/store/hr-store'
@@ -38,8 +40,10 @@ export function useDashboardSummary() {
   const purchaseTotal = purchases.reduce((sum, purchase) => sum + purchase.total, 0)
   const expenseTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0) + purchaseTotal
   const balance = revenue - expenseTotal
-  const headcount = employees.length
-  const onLeave = employees.filter((employee) => employee.status === 'leave').length
+  const roster = employees.filter((employee) => employee.status !== 'left')
+  const headcount = roster.length
+  const onLeave = roster.filter((employee) => employee.status === 'leave').length
+  const payroll = payrollForMonth(employees, currentMonthKey())
 
   return {
     wholesaleOpen,
@@ -55,5 +59,6 @@ export function useDashboardSummary() {
     balance,
     headcount,
     onLeave,
+    payroll,
   }
 }
