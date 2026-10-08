@@ -4,7 +4,7 @@ import regularUrl from '@/assets/fonts/NotoSans-Regular.ttf?url'
 const PAGE_W = 595
 const PAGE_H = 842
 const MARGIN = 40
-const RIGHT_COLUMNS = new Set(['Mədaxil', 'Məxaric', 'Qalıq', 'Məbləğ', 'Qiymət', 'Cəm', 'Say', 'Maaş'])
+const RIGHT_COLUMNS = new Set(['Mədaxil', 'Məxaric', 'Qalıq', 'Məbləğ', 'Qiymət', 'Cəm', 'Say', 'Maaş', 'Dəyər', 'Miqdar'])
 
 let fontBuffers
 let pdfLib

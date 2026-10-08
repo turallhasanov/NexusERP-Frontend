@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from 'react'
+import { getProductType } from '@/store/product-types-store'
+import { formatQuantity, getProductUnit } from '@/store/product-units-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
 const INITIAL_PRODUCTS = [
-  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', barcode: '2000001000012', unitPrice: 9, quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
-  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', barcode: '2000001000142', unitPrice: 28, quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
-  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', barcode: '2000001000326', unitPrice: 4.5, quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
+  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', barcode: '2000001000012', typeId: '1', unitId: '1', unitPrice: 9, quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
+  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', barcode: '2000001000142', typeId: '2', unitId: '1', unitPrice: 28, quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
+  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', barcode: '2000001000326', typeId: '3', unitId: '1', unitPrice: 4.5, quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
 ]
 
 let nextSequence = INITIAL_PRODUCTS.length + 1
@@ -66,7 +68,7 @@ export function deductStock(productId, warehouseId, quantity) {
   const available = product.stocks[warehouseId] ?? 0
 
   if (available < quantity) {
-    return { ok: false, error: `Bu depoda yalnız ${available} ədəd var.` }
+    return { ok: false, error: `Bu depoda yalnız ${formatQuantity(available, product.unitId)} var.` }
   }
 
   state = {
@@ -88,11 +90,19 @@ export function deductStock(productId, warehouseId, quantity) {
   return { ok: true }
 }
 
-export function addProduct({ name, barcode, unitPrice, quantity, minQuantity }) {
+export function addProduct({ name, barcode, typeId, unitId, unitPrice, quantity, minQuantity }) {
   const code = barcode.trim()
 
   if (!code) {
     return { ok: false, error: 'Barkod tələb olunur.' }
+  }
+
+  if (!getProductType(typeId)) {
+    return { ok: false, error: 'Məhsul tipi tələb olunur.' }
+  }
+
+  if (!getProductUnit(unitId)) {
+    return { ok: false, error: 'Ölçü vahidi tələb olunur.' }
   }
 
   if (state.products.some((product) => product.barcode === code)) {
@@ -108,6 +118,8 @@ export function addProduct({ name, barcode, unitPrice, quantity, minQuantity }) 
     name,
     sku: `STK-${String(nextSequence).padStart(3, '0')}`,
     barcode: code,
+    typeId,
+    unitId,
     unitPrice,
     quantity,
     minQuantity,

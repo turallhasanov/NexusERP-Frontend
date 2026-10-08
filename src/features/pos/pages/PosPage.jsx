@@ -7,6 +7,8 @@ import { PosCart } from '@/features/pos/components/PosCart'
 import { PosProductGrid } from '@/features/pos/components/PosProductGrid'
 import { PosScanner } from '@/features/pos/components/PosScanner'
 import { PosStorePicker } from '@/features/pos/components/PosStorePicker'
+import { PosTypeFilter } from '@/features/pos/components/PosTypeFilter'
+import { useProductTypes } from '@/features/products/api/use-product-types'
 import { useStores } from '@/features/stores/api/use-stores'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatAzn } from '@/lib/money'
@@ -16,7 +18,9 @@ import { getProductByBarcode } from '@/store/inventory-store'
 
 export function PosPage() {
   const { stores } = useStores()
+  const { types } = useProductTypes()
   const [storeId, setStoreId] = useState('')
+  const [typeId, setTypeId] = useState('')
   const [cart, setCart] = useState([])
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
@@ -34,17 +38,23 @@ export function PosPage() {
   const visibleProducts = useMemo(() => {
     const term = query.trim().toLowerCase()
 
-    if (!term) {
-      return catalog
-    }
+    return catalog.filter((product) => {
+      if (typeId && product.typeId !== typeId) {
+        return false
+      }
 
-    return catalog.filter(
-      (product) =>
+      if (!term) {
+        return true
+      }
+
+      return (
         product.name.toLowerCase().includes(term) ||
         product.barcode.includes(term) ||
-        product.sku.toLowerCase().includes(term),
-    )
-  }, [catalog, query])
+        product.sku.toLowerCase().includes(term) ||
+        product.typeName.toLowerCase().includes(term)
+      )
+    })
+  }, [catalog, query, typeId])
   useDocumentTitle('POS')
 
   useEffect(() => {
@@ -55,6 +65,7 @@ export function PosPage() {
 
   function selectStore(nextStoreId) {
     setStoreId(nextStoreId)
+    setTypeId('')
     setCart([])
     setQuery('')
     setError('')
@@ -69,7 +80,7 @@ export function PosPage() {
     const nextQty = (inCart?.quantity ?? 0) + 1
 
     if (nextQty > product.stock) {
-      setError(`Bu depoda yalnız ${product.stock} ədəd var.`)
+      setError(`Bu depoda yalnız ${product.stock} ${product.unitName} var.`)
       setNotice('')
       return false
     }
@@ -93,6 +104,7 @@ export function PosPage() {
           sku: product.sku,
           barcode: product.barcode,
           unitPrice: product.unitPrice,
+          unitName: product.unitName,
           quantity: 1,
         },
       ]
@@ -207,6 +219,7 @@ export function PosPage() {
             inputRef={scannerRef}
             disabled={!storeId}
           />
+          {storeId ? <PosTypeFilter types={types} value={typeId} onChange={setTypeId} /> : null}
           <PosProductGrid products={visibleProducts} storeId={storeId} onAdd={addProduct} />
         </div>
         <PosCart
