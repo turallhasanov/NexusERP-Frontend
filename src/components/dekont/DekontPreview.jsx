@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { DekontSheet } from '@/components/dekont/DekontSheet'
+import { cn } from '@/lib/cn'
 import { styles } from '@/lib/styles'
 
 export function DekontPreview({ title, dekont, onClose, onPrint, onPdf }) {
@@ -9,7 +10,13 @@ export function DekontPreview({ title, dekont, onClose, onPrint, onPdf }) {
 
   return createPortal(
     <div className={styles.dekontOverlay} onClick={onClose}>
-      <div className={styles.dekontSheet} onClick={(event) => event.stopPropagation()}>
+      <div
+        className={cn(
+          styles.dekontSheet,
+          dekont.table ? styles.dekontSheetWide : styles.dekontSheetNarrow,
+        )}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="mb-3 flex items-center justify-between gap-4">
           <h2 className="text-sm font-medium text-white">{title}</h2>
           <div className="flex flex-wrap gap-4">

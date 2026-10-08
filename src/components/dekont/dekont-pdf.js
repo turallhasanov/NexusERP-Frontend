@@ -17,7 +17,16 @@ export function dekontPdfLines(dekont) {
     lines.push(`${row.label}: ${row.value}`)
   }
 
-  if (!dekont.lines?.length) {
+  if (dekont.table) {
+    lines.push(dekont.table.columns.join(' | '))
+    if (dekont.table.rows.length === 0) {
+      lines.push(dekont.table.empty ?? 'Hele melumat yoxdur.')
+    } else {
+      for (const row of dekont.table.rows) {
+        lines.push(row.join(' | '))
+      }
+    }
+  } else if (!dekont.lines?.length) {
     for (const row of dekont.rows ?? []) {
       lines.push(`${row.label}: ${row.value}`)
     }
