@@ -1,7 +1,33 @@
 import { styles } from '@/lib/styles'
 
-function tableCellClass(index, count) {
-  return index >= count - 3 && count >= 4 ? 'py-2 text-right tabular-nums' : 'py-2 pr-3'
+const RIGHT_COLUMNS = new Set(['Mədaxil', 'Məxaric', 'Qalıq', 'Məbləğ', 'Qiymət', 'Cəm', 'Say', 'Maaş'])
+
+function tableCellClass(column) {
+  return RIGHT_COLUMNS.has(column) ? 'py-2 text-right tabular-nums' : 'py-2 pr-3'
+}
+
+function TotalsBlock({ totals }) {
+  if (!totals?.length) {
+    return null
+  }
+
+  return (
+    <dl className={`mt-4 grid gap-1.5 border-t pt-4 ${styles.dekontDash}`}>
+      {totals.map((row) => (
+        <div
+          key={row.label}
+          className={
+            row.strong
+              ? 'flex justify-between text-base font-semibold'
+              : 'flex justify-between text-sm text-neutral-600'
+          }
+        >
+          <dt>{row.label}</dt>
+          <dd className={row.strong ? undefined : styles.definitionValue}>{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
 }
 
 export function DekontSheet({ dekont }) {
@@ -30,8 +56,8 @@ export function DekontSheet({ dekont }) {
             <table className="mt-5 w-full text-sm">
               <thead>
                 <tr className={`border-y text-left text-xs text-neutral-400 ${styles.dekontDash}`}>
-                  {columns.map((column, index) => (
-                    <th key={column} className={`${tableCellClass(index, columns.length)} font-medium`}>
+                  {columns.map((column) => (
+                    <th key={column} className={`${tableCellClass(column)} font-medium`}>
                       {column}
                     </th>
                   ))}
@@ -48,7 +74,7 @@ export function DekontSheet({ dekont }) {
                   dekont.table.rows.map((cells) => (
                     <tr key={cells.join('-')}>
                       {cells.map((cell, index) => (
-                        <td key={`${cells[0]}-${index}`} className={tableCellClass(index, columns.length)}>
+                        <td key={`${cells[0]}-${index}`} className={tableCellClass(columns[index])}>
                           {cell}
                         </td>
                       ))}
@@ -57,6 +83,7 @@ export function DekontSheet({ dekont }) {
                 )}
               </tbody>
             </table>
+            <TotalsBlock totals={dekont.totals} />
           </>
         ) : hasLines ? (
           <>
@@ -88,15 +115,25 @@ export function DekontSheet({ dekont }) {
                 ))}
               </tbody>
             </table>
-            <dl className={`mt-4 grid gap-1.5 border-t pt-4 ${styles.dekontDash}`}>
-              {(dekont.totals ?? []).map((row) => (
+            <TotalsBlock totals={dekont.totals} />
+          </>
+        ) : (
+          <>
+            {(dekont.meta ?? []).length ? (
+              <dl className="mb-4 grid gap-1.5 text-sm text-neutral-500">
+                {dekont.meta.map((row) => (
+                  <div key={row.label} className={styles.definitionRow}>
+                    <dt>{row.label}</dt>
+                    <dd className={styles.definitionValue}>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+            <dl className={styles.definitionList}>
+              {(dekont.rows ?? []).map((row) => (
                 <div
                   key={row.label}
-                  className={
-                    row.strong
-                      ? 'flex justify-between text-base font-semibold'
-                      : 'flex justify-between text-sm text-neutral-600'
-                  }
+                  className={row.strong ? 'flex justify-between text-base font-semibold' : styles.definitionRow}
                 >
                   <dt>{row.label}</dt>
                   <dd className={row.strong ? undefined : styles.definitionValue}>{row.value}</dd>
@@ -104,18 +141,6 @@ export function DekontSheet({ dekont }) {
               ))}
             </dl>
           </>
-        ) : (
-          <dl className={styles.definitionList}>
-            {(dekont.rows ?? []).map((row) => (
-              <div
-                key={row.label}
-                className={row.strong ? 'flex justify-between text-base font-semibold' : styles.definitionRow}
-              >
-                <dt>{row.label}</dt>
-                <dd className={row.strong ? undefined : styles.definitionValue}>{row.value}</dd>
-              </div>
-            ))}
-          </dl>
         )}
       </div>
       {dekont.footer ? (

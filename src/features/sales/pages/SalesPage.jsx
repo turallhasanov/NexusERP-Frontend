@@ -30,7 +30,7 @@ export function SalesPage() {
       return
     }
 
-    openSalesDekontPdf(selectedOrder)
+    void openSalesDekontPdf(selectedOrder)
     setPreview(true)
   }
 

@@ -184,7 +184,7 @@ export function PosPage() {
       return
     }
 
-    openPosDekontPdf(lastOrders)
+    void openPosDekontPdf(lastOrders)
     setPreview(true)
   }
 

@@ -28,7 +28,7 @@ export function PurchasesPage() {
       return
     }
 
-    openPurchaseDekontPdf(selectedPurchase)
+    void openPurchaseDekontPdf(selectedPurchase)
     setPreview(true)
   }
 
@@ -51,7 +51,13 @@ export function PurchasesPage() {
       </div>
       <PurchaseTable purchases={purchases} onView={viewPurchase} />
       {preview ? (
-        <DekontPreview title="Alış dekontu" dekont={dekont} onClose={() => setPreview(false)} />
+        <DekontPreview
+          title="Alış dekontu"
+          dekont={dekont}
+          onClose={() => setPreview(false)}
+          onPrint={() => window.print()}
+          onPdf={viewPdf}
+        />
       ) : null}
       <DekontPrintRoot dekont={dekont} />
     </PageContainer>
