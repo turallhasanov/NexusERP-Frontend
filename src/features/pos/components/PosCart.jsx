@@ -11,11 +11,15 @@ export function PosCart({
   payment,
   tendered,
   change,
+  hasReceipt,
   onPaymentChange,
   onTenderedChange,
   onChangeQty,
   onClear,
   onCheckout,
+  onViewReceipt,
+  onPrintReceipt,
+  onPdfReceipt,
 }) {
   const total = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0)
@@ -106,6 +110,19 @@ export function PosCart({
         <button type="button" className={styles.posPayButton} onClick={onCheckout}>
           Satışı tamamla
         </button>
+        {hasReceipt ? (
+          <div className={styles.posDekontRow}>
+            <button type="button" className={styles.posGhostButton} onClick={onViewReceipt}>
+              Bax
+            </button>
+            <button type="button" className={styles.posGhostButton} onClick={onPrintReceipt}>
+              Yazdır
+            </button>
+            <button type="button" className={styles.posGhostButton} onClick={onPdfReceipt}>
+              PDF
+            </button>
+          </div>
+        ) : null}
         <button type="button" className={styles.posGhostButton} onClick={onClear}>
           Səbəti təmizlə
         </button>

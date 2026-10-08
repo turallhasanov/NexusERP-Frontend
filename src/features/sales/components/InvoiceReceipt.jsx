@@ -1,3 +1,4 @@
+import { DekontSheet } from '@/components/dekont/DekontSheet'
 import { Card } from '@/components/ui/card'
 import { buildSalesDekont } from '@/features/sales/api/sales-dekont'
 import { styles } from '@/lib/styles'
@@ -6,19 +7,11 @@ export function InvoiceReceipt({ order, onView, onPrint, onPdf }) {
   const dekont = order ? buildSalesDekont(order) : null
 
   return (
-    <Card className="text-sm">
-      <h2 className={styles.sectionTitle}>Satış dekontu</h2>
+    <Card padded={false} className="overflow-hidden text-sm">
       {dekont ? (
         <>
-          <dl className={styles.definitionList}>
-            {dekont.rows.map((row) => (
-              <div key={row.label} className={styles.definitionRow}>
-                <dt>{row.label}</dt>
-                <dd className={styles.definitionValue}>{row.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className={styles.dekontActions}>
+          <DekontSheet dekont={dekont} />
+          <div className={`border-t border-neutral-200 px-8 pb-6 ${styles.dekontActions}`}>
             <button type="button" className={styles.headerAction} onClick={onView}>
               Bax
             </button>
@@ -31,7 +24,10 @@ export function InvoiceReceipt({ order, onView, onPrint, onPdf }) {
           </div>
         </>
       ) : (
-        <p className={styles.pageDescription}>Dekont üçün əvvəlcə sifariş yazın.</p>
+        <div className="p-4">
+          <h2 className={styles.sectionTitle}>Satış dekontu</h2>
+          <p className={styles.pageDescription}>Dekont üçün əvvəlcə sifariş yazın.</p>
+        </div>
       )}
     </Card>
   )
