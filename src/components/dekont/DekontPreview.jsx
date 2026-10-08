@@ -1,9 +1,9 @@
 import { createPortal } from 'react-dom'
-import { DekontSheet } from '@/features/sales/components/DekontSheet'
+import { DekontSheet } from '@/components/dekont/DekontSheet'
 import { styles } from '@/lib/styles'
 
-export function DekontPreview({ order, onClose }) {
-  if (!order) {
+export function DekontPreview({ title, dekont, onClose }) {
+  if (!dekont) {
     return null
   }
 
@@ -14,26 +14,26 @@ export function DekontPreview({ order, onClose }) {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className={styles.sectionTitle}>Satış dekontu</h2>
+          <h2 className={styles.sectionTitle}>{title}</h2>
           <button type="button" className={styles.headerAction} onClick={onClose}>
             Bağla
           </button>
         </div>
-        <DekontSheet order={order} />
+        <DekontSheet dekont={dekont} />
       </div>
     </div>,
     document.body,
   )
 }
 
-export function DekontPrintRoot({ order }) {
-  if (!order) {
+export function DekontPrintRoot({ dekont }) {
+  if (!dekont) {
     return null
   }
 
   return createPortal(
     <div className={styles.dekontPrintRoot}>
-      <DekontSheet order={order} />
+      <DekontSheet dekont={dekont} />
     </div>,
     document.body,
   )

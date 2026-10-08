@@ -1,9 +1,6 @@
-import { buildSalesDekont } from '@/features/sales/api/sales-dekont'
 import { styles } from '@/lib/styles'
 
-export function DekontSheet({ order }) {
-  const dekont = buildSalesDekont(order)
-
+export function DekontSheet({ dekont }) {
   return (
     <>
       <p className="text-xs tracking-[0.2em] text-neutral-500">NEXUSERP</p>

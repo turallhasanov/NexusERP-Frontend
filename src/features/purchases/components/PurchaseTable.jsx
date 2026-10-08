@@ -2,9 +2,9 @@ import { Card } from '@/components/ui/card'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'İşçi', 'Say', 'Məbləğ']
+const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'İşçi', 'Say', 'Məbləğ', 'Əməliyyat']
 
-export function PurchaseTable({ purchases }) {
+export function PurchaseTable({ purchases, onView }) {
   return (
     <Card padded={false}>
       <table className={styles.table}>
@@ -35,6 +35,11 @@ export function PurchaseTable({ purchases }) {
                 <td className={styles.tableCellMuted}>{purchase.user}</td>
                 <td className={styles.tableCell}>{purchase.quantity}</td>
                 <td className={styles.tableCell}>{formatAzn(purchase.total)}</td>
+                <td className={styles.tableCell}>
+                  <button type="button" className={styles.headerAction} onClick={() => onView(purchase.id)}>
+                    Bax
+                  </button>
+                </td>
               </tr>
             ))
           )}
