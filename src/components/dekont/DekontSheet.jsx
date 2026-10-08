@@ -1,7 +1,13 @@
 import { styles } from '@/lib/styles'
 
+function tableCellClass(index, count) {
+  return index >= count - 3 && count >= 4 ? 'py-2 text-right tabular-nums' : 'py-2 pr-3'
+}
+
 export function DekontSheet({ dekont }) {
+  const hasTable = Boolean(dekont.table)
   const hasLines = Boolean(dekont.lines?.length)
+  const columns = dekont.table?.columns ?? []
 
   return (
     <div className={styles.dekontPaper}>
@@ -11,7 +17,48 @@ export function DekontSheet({ dekont }) {
         <p className="mt-1 text-center font-mono text-sm text-neutral-500">{dekont.number}</p>
       ) : null}
       <div className={`mt-6 border-t pt-4 ${styles.dekontDash}`}>
-        {hasLines ? (
+        {hasTable ? (
+          <>
+            <dl className="grid gap-1.5 text-sm text-neutral-500">
+              {(dekont.meta ?? []).map((row) => (
+                <div key={row.label} className={styles.definitionRow}>
+                  <dt>{row.label}</dt>
+                  <dd className={styles.definitionValue}>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <table className="mt-5 w-full text-sm">
+              <thead>
+                <tr className={`border-y text-left text-xs text-neutral-400 ${styles.dekontDash}`}>
+                  {columns.map((column, index) => (
+                    <th key={column} className={`${tableCellClass(index, columns.length)} font-medium`}>
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {dekont.table.rows.length === 0 ? (
+                  <tr>
+                    <td className="py-4 text-neutral-500" colSpan={columns.length}>
+                      {dekont.table.empty ?? 'Hələ məlumat yoxdur.'}
+                    </td>
+                  </tr>
+                ) : (
+                  dekont.table.rows.map((cells) => (
+                    <tr key={cells.join('-')}>
+                      {cells.map((cell, index) => (
+                        <td key={`${cells[0]}-${index}`} className={tableCellClass(index, columns.length)}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </>
+        ) : hasLines ? (
           <>
             <dl className="grid gap-1.5 text-sm text-neutral-500">
               {(dekont.meta ?? []).map((row) => (
