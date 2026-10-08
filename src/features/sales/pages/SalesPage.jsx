@@ -30,7 +30,7 @@ export function SalesPage() {
       return
     }
 
-    openSalesDekontPdf(selectedOrder)
+    void openSalesDekontPdf(selectedOrder)
     setPreview(true)
   }
 
@@ -65,7 +65,13 @@ export function SalesPage() {
       </div>
       <OrderTable orders={orders} onView={viewOrder} />
       {preview ? (
-        <DekontPreview title="Satış dekontu" dekont={dekont} onClose={() => setPreview(false)} />
+        <DekontPreview
+          title="Satış dekontu"
+          dekont={dekont}
+          onClose={() => setPreview(false)}
+          onPrint={() => window.print()}
+          onPdf={viewPdf}
+        />
       ) : null}
       <DekontPrintRoot dekont={dekont} />
     </PageContainer>

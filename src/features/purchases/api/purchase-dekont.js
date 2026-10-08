@@ -1,11 +1,12 @@
 import { formatAzn } from '@/lib/money'
-import { openPdf } from '@/lib/pdf'
+import { openReportPdf } from '@/lib/pdf'
 
 export function buildPurchaseDekont(purchase) {
   return {
-    title: `Alış dekontu ${purchase.number}`,
+    title: 'Alış dekontu',
+    number: purchase.number,
+    meta: [{ label: 'Qaimə', value: purchase.number }],
     rows: [
-      { label: 'Qaimə №', value: purchase.number },
       { label: 'Kontragent', value: purchase.customer },
       { label: 'VÖEN', value: purchase.voen },
       { label: 'Məhsul', value: purchase.product },
@@ -13,16 +14,12 @@ export function buildPurchaseDekont(purchase) {
       { label: 'Qiymət', value: formatAzn(purchase.unitPrice) },
       { label: 'Depo', value: purchase.warehouse },
       { label: 'İşçi', value: purchase.user },
-      { label: 'Məbləğ', value: formatAzn(purchase.total) },
+      { label: 'Məbləğ', value: formatAzn(purchase.total), strong: true },
     ],
+    footer: 'NexusERP alış dekontu',
   }
 }
 
 export function openPurchaseDekontPdf(purchase) {
-  const { title, rows } = buildPurchaseDekont(purchase)
-  return openPdf(
-    `${purchase.number}.pdf`,
-    title,
-    rows.map((row) => `${row.label}: ${row.value}`),
-  )
+  return openReportPdf(`${purchase.number}.pdf`, buildPurchaseDekont(purchase))
 }

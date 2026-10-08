@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { checkoutPos } from '@/features/pos/api/checkout-pos'
+import { buildPosDekont, openPosDekontPdf } from '@/features/pos/api/pos-dekont'
 import { usePosCatalog } from '@/features/pos/api/use-pos-catalog'
 import { PosCart } from '@/features/pos/components/PosCart'
 import { PosProductGrid } from '@/features/pos/components/PosProductGrid'
@@ -21,6 +23,9 @@ export function PosPage() {
   const [notice, setNotice] = useState('')
   const [payment, setPayment] = useState(PAYMENT_CASH)
   const [tendered, setTendered] = useState('')
+  const [lastOrders, setLastOrders] = useState([])
+  const [preview, setPreview] = useState(false)
+  const lastDekont = buildPosDekont(lastOrders)
   const scannerRef = useRef(null)
   const selectedStore = stores.find((store) => store.id === storeId)
   const catalog = usePosCatalog(selectedStore?.warehouseId)
@@ -55,6 +60,8 @@ export function PosPage() {
     setError('')
     setNotice('')
     setTendered('')
+    setLastOrders([])
+    setPreview(false)
   }
 
   function addProduct(product) {
@@ -167,7 +174,18 @@ export function PosPage() {
     setQuery('')
     setError('')
     setTendered('')
+    setLastOrders(result.orders)
+    setPreview(true)
     setNotice(leftover == null ? 'Satış yazıldı.' : `Satış yazıldı. Qalıq ${formatAzn(leftover)}.`)
+  }
+
+  function viewPdf() {
+    if (!lastOrders.length) {
+      return
+    }
+
+    void openPosDekontPdf(lastOrders)
+    setPreview(true)
   }
 
   return (
@@ -209,8 +227,22 @@ export function PosPage() {
             setTendered('')
           }}
           onCheckout={checkout}
+          hasReceipt={Boolean(lastDekont)}
+          onViewReceipt={() => setPreview(true)}
+          onPrintReceipt={() => window.print()}
+          onPdfReceipt={viewPdf}
         />
       </div>
+      {preview ? (
+        <DekontPreview
+          title="POS qəbzi"
+          dekont={lastDekont}
+          onClose={() => setPreview(false)}
+          onPrint={() => window.print()}
+          onPdf={viewPdf}
+        />
+      ) : null}
+      <DekontPrintRoot dekont={lastDekont} />
     </section>
   )
 }

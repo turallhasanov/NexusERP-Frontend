@@ -20,6 +20,7 @@ export function DashboardPage() {
     balance,
     headcount,
     onLeave,
+    payroll,
   } = useDashboardSummary()
   useDocumentTitle('İdarə paneli')
 
@@ -37,6 +38,7 @@ export function DashboardPage() {
     { label: 'Bu günkü qalıq', value: formatAzn(balance) },
     { label: 'İşçi sayı', value: String(headcount) },
     { label: 'Məzuniyyətdə', value: String(onLeave) },
+    { label: 'Bu ayın maaş', value: formatAzn(payroll) },
   ]
 
   return (

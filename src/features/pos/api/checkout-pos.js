@@ -22,6 +22,7 @@ export function checkoutPos({ storeId, lines, payment, tendered }) {
   }
 
   const lastIndex = lines.length - 1
+  const orders = []
 
   for (const [index, line] of lines.entries()) {
     const isLast = index === lastIndex
@@ -39,7 +40,9 @@ export function checkoutPos({ storeId, lines, payment, tendered }) {
     if (!result.ok) {
       return result
     }
+
+    orders.push(result.order)
   }
 
-  return { ok: true, change }
+  return { ok: true, change, orders }
 }

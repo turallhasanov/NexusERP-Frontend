@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { createEmployee } from '@/features/hr/api/create-employee'
+import { toDateInput } from '@/lib/date'
 import { styles } from '@/lib/styles'
 
 const DEPARTMENTS = ['İdarə', 'Anbar', 'Satış', 'Maliyyə']
@@ -12,6 +13,8 @@ const EMPTY_FORM = {
   name: '',
   title: '',
   department: '',
+  hiredAt: toDateInput(),
+  salary: '',
 }
 
 export function EmployeeForm() {
@@ -33,14 +36,21 @@ export function EmployeeForm() {
     const name = form.name.trim()
     const title = form.title.trim()
     const department = form.department
+    const hiredAt = form.hiredAt
+    const salary = Number(form.salary)
 
-    if (!name || !title || !department) {
-      setError('Ad, vəzifə və şöbə tələb olunur.')
+    if (!name || !title || !department || !hiredAt) {
+      setError('Ad, vəzifə, şöbə və işə qəbul tarixi tələb olunur.')
       return
     }
 
-    createEmployee({ name, title, department })
-    setForm(EMPTY_FORM)
+    if (!Number.isFinite(salary) || salary <= 0) {
+      setError('Maaş 0-dan böyük olmalıdır.')
+      return
+    }
+
+    createEmployee({ name, title, department, hiredAt, salary })
+    setForm({ ...EMPTY_FORM, hiredAt: toDateInput() })
     setError('')
   }
 
@@ -75,6 +85,19 @@ export function EmployeeForm() {
                 </option>
               ))}
             </select>
+          </Field>
+          <Field label="İşə qəbul">
+            <Input type="date" value={form.hiredAt} onChange={updateField('hiredAt')} />
+          </Field>
+          <Field label="Maaş (₼)">
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.salary}
+              onChange={updateField('salary')}
+              placeholder="0.00"
+            />
           </Field>
         </div>
         {error ? <p className={styles.pageDescription}>{error}</p> : null}

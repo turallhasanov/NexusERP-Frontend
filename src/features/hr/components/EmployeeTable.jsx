@@ -1,9 +1,12 @@
 import { Card } from '@/components/ui/card'
 import { EmployeeStatusBadge } from '@/features/hr/components/EmployeeStatusBadge'
+import { setEmployeeTerminated } from '@/features/hr/api/terminate-employee'
 import { setEmployeeLeave } from '@/features/hr/api/toggle-employee-leave'
+import { formatDate } from '@/lib/date'
+import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Ad', 'Vəzifə', 'Şöbə', 'Status', 'Əməliyyat']
+const TABLE_COLUMNS = ['Ad', 'Vəzifə', 'Şöbə', 'İşə qəbul', 'İşdən çıxma', 'Maaş', 'Status', 'Əməliyyat']
 
 export function EmployeeTable({ employees }) {
   return (
@@ -31,17 +34,33 @@ export function EmployeeTable({ employees }) {
                 <td className={styles.tableCell}>{employee.name}</td>
                 <td className={styles.tableCellMuted}>{employee.title}</td>
                 <td className={styles.tableCellMuted}>{employee.department}</td>
+                <td className={styles.tableCellMuted}>{formatDate(employee.hiredAt)}</td>
+                <td className={styles.tableCellMuted}>{formatDate(employee.leftAt)}</td>
+                <td className={styles.tableCell}>{formatAzn(employee.salary)}</td>
                 <td className={styles.tableCell}>
                   <EmployeeStatusBadge status={employee.status} />
                 </td>
                 <td className={styles.tableCell}>
-                  <button
-                    type="button"
-                    className={styles.headerAction}
-                    onClick={() => setEmployeeLeave(employee.id)}
-                  >
-                    {employee.status === 'active' ? 'Məzuniyyətə göndər' : 'İşə qaytar'}
-                  </button>
+                  {employee.status === 'left' ? (
+                    '—'
+                  ) : (
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        className={styles.headerAction}
+                        onClick={() => setEmployeeLeave(employee.id)}
+                      >
+                        {employee.status === 'active' ? 'Məzuniyyətə göndər' : 'İşə qaytar'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.headerAction}
+                        onClick={() => setEmployeeTerminated(employee.id)}
+                      >
+                        İşdən çıxar
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))

@@ -1,6 +1,6 @@
-import { formatMonth, monthKey } from '@/lib/date'
+import { formatPeriod, periodKey } from '@/lib/date'
 
-export function buildStoreMizan({ orders, purchases, stores, warehouses }) {
+export function buildStoreMizan({ orders, purchases, stores, warehouses, period }) {
   const warehouseNameById = new Map(warehouses.map((warehouse) => [warehouse.id, warehouse.name]))
   const storeByName = new Map(stores.map((store) => [store.name, store]))
   const storeByWarehouseName = new Map()
@@ -16,15 +16,15 @@ export function buildStoreMizan({ orders, purchases, stores, warehouses }) {
   const buckets = new Map()
 
   function bucket(store, createdAt) {
-    const month = monthKey(createdAt)
-    const key = `${store.id}:${month}`
+    const slot = periodKey(createdAt, period)
+    const key = `${store.id}:${slot}`
 
     if (!buckets.has(key)) {
       buckets.set(key, {
         key,
         store: store.name,
-        month,
-        label: formatMonth(month),
+        slot,
+        label: formatPeriod(slot, period),
         income: 0,
         expense: 0,
       })
@@ -59,5 +59,5 @@ export function buildStoreMizan({ orders, purchases, stores, warehouses }) {
 
   return [...buckets.values()]
     .map((row) => ({ ...row, balance: row.income - row.expense }))
-    .sort((a, b) => (a.month === b.month ? a.store.localeCompare(b.store, 'az') : a.month < b.month ? 1 : -1))
+    .sort((a, b) => (a.slot === b.slot ? a.store.localeCompare(b.store, 'az') : a.slot < b.slot ? 1 : -1))
 }

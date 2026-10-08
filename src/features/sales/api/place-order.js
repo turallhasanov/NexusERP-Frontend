@@ -42,7 +42,7 @@ export function placeOrder({ type, customerId, storeId, productId, warehouseId, 
     return stock
   }
 
-  addOrder({
+  const order = addOrder({
     type: isRetail ? 'retail' : 'wholesale',
     customer: customer?.name ?? 'Pərakəndə',
     voen: customer?.voen ?? '—',
@@ -56,5 +56,5 @@ export function placeOrder({ type, customerId, storeId, productId, warehouseId, 
     change,
   })
 
-  return { ok: true }
+  return { ok: true, order }
 }
