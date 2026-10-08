@@ -37,6 +37,7 @@ export function addPurchase({ customer, voen, product, warehouse, user, quantity
     quantity,
     unitPrice,
     total: quantity * unitPrice,
+    createdAt: new Date().toISOString(),
   }
 
   nextSequence += 1

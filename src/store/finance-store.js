@@ -31,6 +31,7 @@ export function addExpense({ category, amount }) {
     number: `MƏX-2026-${String(nextSequence).padStart(3, '0')}`,
     category,
     amount,
+    createdAt: new Date().toISOString(),
   }
 
   nextSequence += 1

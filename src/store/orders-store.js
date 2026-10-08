@@ -42,6 +42,7 @@ export function addOrder({ type, customer, voen, warehouse, store, product, quan
     change: Number.isFinite(change) ? change : null,
     total: quantity * unitPrice,
     status: 'open',
+    createdAt: new Date().toISOString(),
   }
 
   nextSequence += 1

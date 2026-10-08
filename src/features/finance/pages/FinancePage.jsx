@@ -3,17 +3,18 @@ import { Card } from '@/components/ui/card'
 import { ExpenseForm } from '@/features/finance/components/ExpenseForm'
 import { ExpenseTable } from '@/features/finance/components/ExpenseTable'
 import { IncomeTable } from '@/features/finance/components/IncomeTable'
+import { MizanTable } from '@/features/finance/components/MizanTable'
 import { useFinanceLedger } from '@/features/finance/api/use-finance-ledger'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function FinancePage() {
-  const { entries, expenses, income, expenseTotal, balance } = useFinanceLedger()
+  const { entries, expenses, months, income, expenseTotal, balance } = useFinanceLedger()
   useDocumentTitle('Maliyyə')
 
   return (
-    <PageContainer title="Maliyyə" description="Satış mədaxili, alış məxarici və günün qalığı.">
+    <PageContainer title="Maliyyə" description="Satış mədaxili, alış məxarici və aylıq mizan.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Bu günkü mədaxil</p>
@@ -28,6 +29,7 @@ export function FinancePage() {
           <p className={styles.summaryValue}>{formatAzn(balance)}</p>
         </Card>
       </div>
+      <MizanTable months={months} />
       <ExpenseForm />
       <IncomeTable entries={entries} />
       <ExpenseTable expenses={expenses} />
