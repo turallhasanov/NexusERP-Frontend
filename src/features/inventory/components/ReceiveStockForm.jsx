@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { addStock } from '@/features/inventory/api/receive-stock'
 import { styles } from '@/lib/styles'
 import { useInventoryStore } from '@/store/inventory-store'
+import { formatQuantity } from '@/store/product-units-store'
 import { useWarehousesStore } from '@/store/warehouses-store'
 
 const EMPTY_FORM = {
@@ -41,8 +42,8 @@ export function ReceiveStockForm() {
       return
     }
 
-    if (!Number.isFinite(quantity) || quantity < 1) {
-      setError('Say ən azı 1 olmalıdır.')
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      setError('Say 0-dan böyük olmalıdır.')
       return
     }
 
@@ -70,7 +71,7 @@ export function ReceiveStockForm() {
               <option value="">Məhsulu seçin</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} ({product.quantity})
+                  {product.name} ({formatQuantity(product.quantity, product.unitId)})
                 </option>
               ))}
             </select>
@@ -92,7 +93,8 @@ export function ReceiveStockForm() {
           <Field label="Say">
             <Input
               type="number"
-              min={1}
+              min={0}
+              step="0.01"
               value={form.quantity}
               onChange={updateField('quantity')}
             />
