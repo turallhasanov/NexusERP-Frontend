@@ -1,10 +1,10 @@
-import { formatMonth, monthKey } from '@/lib/date'
+import { payrollForMonth } from '@/features/hr/api/payroll'
+import { currentMonthKey, formatMonth, monthKey } from '@/lib/date'
 
-export function buildMizan({ orders, expenses, purchases }) {
+export function buildMizan({ orders, expenses, purchases, employees }) {
   const buckets = new Map()
 
-  function bucket(createdAt) {
-    const key = monthKey(createdAt)
+  function bucket(key) {
     if (!buckets.has(key)) {
       buckets.set(key, { key, label: formatMonth(key), income: 0, expense: 0 })
     }
@@ -12,15 +12,22 @@ export function buildMizan({ orders, expenses, purchases }) {
   }
 
   for (const order of orders) {
-    bucket(order.createdAt).income += order.total
+    bucket(monthKey(order.createdAt)).income += order.total
   }
 
   for (const expense of expenses) {
-    bucket(expense.createdAt).expense += expense.amount
+    bucket(monthKey(expense.createdAt)).expense += expense.amount
   }
 
   for (const purchase of purchases) {
-    bucket(purchase.createdAt).expense += purchase.total
+    bucket(monthKey(purchase.createdAt)).expense += purchase.total
+  }
+
+  const keys = new Set(buckets.keys())
+  keys.add(currentMonthKey())
+
+  for (const key of keys) {
+    bucket(key).expense += payrollForMonth(employees, key)
   }
 
   return [...buckets.values()]
