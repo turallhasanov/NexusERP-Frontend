@@ -11,6 +11,7 @@ export async function signIn({ email, password }) {
     login({ token, user })
     return { ok: true }
   } catch (error) {
-    return { ok: false, error: error.message }
+    // 403 = right password but e-mail not confirmed yet; the form sends the user to the code screen.
+    return { ok: false, error: error.message, status: error.status }
   }
 }

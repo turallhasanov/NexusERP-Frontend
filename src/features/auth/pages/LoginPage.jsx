@@ -1,14 +1,13 @@
-import { Navigate } from 'react-router-dom'
-import { BrandLockup } from '@/components/brand/BrandLockup'
-import { Card } from '@/components/ui/card'
+import { Navigate, useLocation } from 'react-router-dom'
+import { AuthPanel } from '@/components/layout/AuthPanel'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { routes } from '@/lib/routes'
-import { styles } from '@/lib/styles'
 import { useAuthStore } from '@/store/auth-store'
 
 export function LoginPage() {
   const { token, activeCompanyId } = useAuthStore()
+  const location = useLocation()
   useDocumentTitle('Giriş')
 
   if (token) {
@@ -16,19 +15,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className={styles.loginPanel}>
-      <div className={styles.loginBrand}>
-        <BrandLockup align="center" />
-      </div>
-      <Card>
-        <div className={styles.page}>
-          <header>
-            <h1 className={styles.pageTitle}>Giriş</h1>
-            <p className={styles.pageDescription}>Hesabınızla davam edin.</p>
-          </header>
-          <LoginForm />
-        </div>
-      </Card>
-    </div>
+    <AuthPanel title="Giriş" description="Hesabınızla davam edin.">
+      <LoginForm initialEmail={location.state?.email} notice={location.state?.notice} />
+    </AuthPanel>
   )
 }

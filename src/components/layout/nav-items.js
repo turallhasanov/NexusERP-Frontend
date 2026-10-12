@@ -13,4 +13,6 @@ export const navItems = [
   { label: 'İnsan resursları', href: routes.hr },
   { label: 'Maliyyə', href: routes.finance },
   { label: 'Hesabatlar', href: routes.reports },
+  // Company profile and invite code: admins only (the API returns 403 to staff).
+  { label: 'Parametrlər', href: routes.settings, adminOnly: true },
 ]

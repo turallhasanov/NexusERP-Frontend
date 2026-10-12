@@ -1,11 +1,16 @@
 import { cn } from '@/lib/cn'
 import { styles } from '@/lib/styles'
 
-export function Button({ className, type = 'button', ...props }) {
+const buttonVariants = {
+  primary: styles.buttonPrimary,
+  outline: styles.buttonOutline,
+}
+
+export function Button({ className, type = 'button', variant = 'primary', ...props }) {
   return (
     <button
       type={type}
-      className={cn(styles.buttonPrimary, className)}
+      className={cn(buttonVariants[variant], className)}
       {...props}
     />
   )
