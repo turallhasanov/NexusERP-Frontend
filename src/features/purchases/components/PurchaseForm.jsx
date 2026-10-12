@@ -1,83 +1,65 @@
 import { useState } from 'react'
+import { DocumentLinesEditor } from '@/components/documents/DocumentLinesEditor'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import { placePurchase } from '@/features/purchases/api/place-purchase'
+import { emptyLine } from '@/lib/document-lines'
 import { styles } from '@/lib/styles'
 import { useCustomersStore } from '@/store/customers-store'
 import { useInventoryStore } from '@/store/inventory-store'
 import { useWarehousesStore } from '@/store/warehouses-store'
+import { showToast } from '@/store/toast-store'
 
-const EMPTY_FORM = {
-  customerId: '',
-  productId: '',
-  warehouseId: '',
-  quantity: 1,
-  unitPrice: '',
+function emptyForm() {
+  return {
+    customerId: '',
+    warehouseId: '',
+    lines: [emptyLine()],
+  }
 }
 
-export function PurchaseForm() {
+// Creates a draft purchase. Stock is increased only when the draft is approved.
+export function PurchaseForm({ onCreated }) {
   const { customers } = useCustomersStore()
   const { products } = useInventoryStore()
   const { warehouses } = useWarehousesStore()
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   function updateField(field) {
     return (event) => {
-      setForm((current) => ({
-        ...current,
-        [field]: event.target.value,
-      }))
+      setForm((current) => ({ ...current, [field]: event.target.value }))
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    const customerId = form.customerId
-    const productId = form.productId
-    const warehouseId = form.warehouseId
-    const quantity = Number(form.quantity)
-    const unitPrice = Number(form.unitPrice)
+    const result = await placePurchase(form)
 
-    if (!customerId || !productId || !warehouseId) {
-      setError('Kontragent, məhsul və depo tələb olunur.')
-      return
-    }
-
-    if (!Number.isFinite(quantity) || quantity < 1) {
-      setError('Say ən azı 1 olmalıdır.')
-      return
-    }
-
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-      setError('Qiymət 0-dan böyük olmalıdır.')
-      return
-    }
-
-    const result = placePurchase({ customerId, productId, warehouseId, quantity, unitPrice })
+    setSubmitting(false)
 
     if (!result.ok) {
       setError(result.error)
       return
     }
 
-    setForm(EMPTY_FORM)
-    setError('')
+    setForm(emptyForm())
+    showToast(`Alış sənədi yaradıldı: ${result.purchase.number}`)
+    onCreated?.(result.purchase)
   }
 
   return (
     <Card>
       <form className={styles.form} onSubmit={handleSubmit}>
+        <h2 className={styles.sectionTitle}>Yeni alış (qaralama)</h2>
         <div className={styles.formGrid}>
-          <Field label="Kontragent">
-            <select
-              className={styles.input}
-              value={form.customerId}
-              onChange={updateField('customerId')}
-            >
+          <Field label="Təchizatçı (kontragent)">
+            <select className={styles.input} value={form.customerId} onChange={updateField('customerId')}>
               <option value="">Kontragenti seçin</option>
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
@@ -86,26 +68,8 @@ export function PurchaseForm() {
               ))}
             </select>
           </Field>
-          <Field label="Məhsul">
-            <select
-              className={styles.input}
-              value={form.productId}
-              onChange={updateField('productId')}
-            >
-              <option value="">Məhsulu seçin</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} ({form.warehouseId ? (product.stocks[form.warehouseId] ?? 0) : product.quantity})
-                </option>
-              ))}
-            </select>
-          </Field>
           <Field label="Depo">
-            <select
-              className={styles.input}
-              value={form.warehouseId}
-              onChange={updateField('warehouseId')}
-            >
+            <select className={styles.input} value={form.warehouseId} onChange={updateField('warehouseId')}>
               <option value="">Depo seçin</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -114,27 +78,19 @@ export function PurchaseForm() {
               ))}
             </select>
           </Field>
-          <Field label="Say">
-            <Input
-              type="number"
-              min={1}
-              value={form.quantity}
-              onChange={updateField('quantity')}
-            />
-          </Field>
-          <Field label="Qiymət (₼)">
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              value={form.unitPrice}
-              onChange={updateField('unitPrice')}
-              placeholder="0.00"
-            />
-          </Field>
         </div>
-        {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">Alışı yadda saxla</Button>
+        <DocumentLinesEditor
+          lines={form.lines}
+          onChange={(lines) => setForm((current) => ({ ...current, lines }))}
+          products={products}
+          defaultPrice={(product) => product.purchasePrice}
+          stockWarehouseId={form.warehouseId}
+          pricePlaceholder="Alış qiyməti"
+        />
+        {error ? <p className={styles.formError}>{error}</p> : null}
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Yadda saxlanılır…' : 'Qaralamanı yadda saxla'}
+        </Button>
       </form>
     </Card>
   )

@@ -1,9 +1,19 @@
-import { placeOrder } from '@/features/sales/api/place-order'
 import { cashChange, PAYMENT_CARD, PAYMENT_CASH } from '@/lib/payment'
+import { apiClient } from '@/services/api-client'
+import { loadCashRegisters } from '@/store/cash-registers-store'
+import { loadProducts } from '@/store/inventory-store'
+import { upsertOrder } from '@/store/orders-store'
 
-export function checkoutPos({ storeId, lines, payment, tendered }) {
+// POST /api/sales/pos-checkout: one approved sale with all cart lines. The server decreases stock and pays
+// the total into the cash register in one transaction; on a shortage nothing is saved.
+// Payment method, tendered cash and change are till-side only (receipt), not stored on the server.
+export async function checkoutPos({ storeId, cashRegisterId, lines, payment, tendered }) {
   if (!storeId) {
     return { ok: false, error: 'Mağaza tələb olunur.' }
+  }
+
+  if (!cashRegisterId) {
+    return { ok: false, error: 'Kassa seçilməlidir.' }
   }
 
   if (!lines.length) {
@@ -21,28 +31,25 @@ export function checkoutPos({ storeId, lines, payment, tendered }) {
     return { ok: false, error: 'Verilən məbləğ cəmidən az ola bilməz.' }
   }
 
-  const lastIndex = lines.length - 1
-  const orders = []
-
-  for (const [index, line] of lines.entries()) {
-    const isLast = index === lastIndex
-    const result = placeOrder({
-      type: 'retail',
+  try {
+    const sale = await apiClient.post('/sales/pos-checkout', {
       storeId,
-      productId: line.productId,
-      quantity: line.quantity,
-      unitPrice: line.unitPrice,
-      payment,
-      tendered: isLast && payment === PAYMENT_CASH ? tendered : undefined,
-      change: isLast && payment === PAYMENT_CASH ? change : undefined,
+      cashRegisterId,
+      items: lines.map((line) => ({
+        productId: line.productId,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+      })),
     })
 
-    if (!result.ok) {
-      return result
-    }
+    upsertOrder(sale)
+    void loadProducts()
+    void loadCashRegisters()
 
-    orders.push(result.order)
+    return { ok: true, sale, change }
+  } catch (error) {
+    // A shortage means another till sold the stock first; refresh so the grid shows what is left.
+    void loadProducts()
+    return { ok: false, error: error.message }
   }
-
-  return { ok: true, change, orders }
 }

@@ -1,48 +1,43 @@
-import { formatDate } from '@/lib/date'
+import { formatDate, fromApiDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
-import { PAYMENT_CASH, paymentLabel } from '@/lib/payment'
 import { openReportPdf } from '@/lib/pdf'
+import { getCustomer } from '@/store/customers-store'
 
-function cashTotals(order, total) {
-  const totals = [{ label: 'Cəm', value: formatAzn(total), strong: true }]
-
-  if (order.payment === PAYMENT_CASH && Number.isFinite(order.tendered) && Number.isFinite(order.change)) {
-    totals.push(
-      { label: 'Verilən', value: formatAzn(order.tendered) },
-      { label: 'Qalıq', value: formatAzn(order.change) },
-    )
-  }
-
-  return totals
+export const DOCUMENT_STATUS_LABELS = {
+  draft: 'Qaralama',
+  approved: 'Təsdiqlənib',
 }
 
-export function buildSalesDekont(order) {
+// Lines of a full API document (sale or purchase) → dekont lines.
+export function documentLines(document) {
+  return document.items.map((item) => ({
+    name: item.product.name,
+    qty: `${item.quantity} ${item.product.unitShortName}`,
+    price: formatAzn(item.unitPrice),
+    total: formatAzn(item.totalPrice),
+  }))
+}
+
+// Full sale from GET /api/sales/{id} (or a create / approve response).
+export function buildSalesDekont(sale) {
   return {
     title: 'Satış dekontu',
-    number: order.number,
+    number: sale.documentNumber,
     meta: [
-      { label: 'Növ', value: order.type === 'retail' ? 'Pərakəndə' : 'Toptan' },
-      { label: 'Kontragent', value: order.customer },
-      { label: 'VÖEN', value: order.voen },
-      { label: 'Depo', value: order.warehouse },
-      { label: 'Mağaza', value: order.store },
-      { label: 'Ödəniş', value: paymentLabel(order.payment) },
-      { label: 'Tarix', value: formatDate(order.createdAt) },
+      { label: 'Növ', value: sale.customerId ? 'Toptan' : 'Pərakəndə' },
+      { label: 'Kontragent', value: sale.customer?.name ?? 'Pərakəndə' },
+      { label: 'VÖEN', value: (sale.customerId && getCustomer(sale.customerId)?.voen) || '—' },
+      { label: 'Mağaza', value: sale.store.name },
+      { label: 'Depo', value: sale.warehouse.name },
+      { label: 'Status', value: DOCUMENT_STATUS_LABELS[sale.status] ?? sale.status },
+      { label: 'Tarix', value: formatDate(fromApiDate(sale.documentDate)) },
     ],
-    lines: [
-      {
-        name: order.product,
-        qty: String(order.quantity),
-        price: formatAzn(order.unitPrice),
-        total: formatAzn(order.total),
-      },
-    ],
-    totals: cashTotals(order, order.total),
+    lines: documentLines(sale),
+    totals: [{ label: 'Cəm', value: formatAzn(sale.totalAmount), strong: true }],
     footer: 'Alışınız üçün təşəkkür edirik.',
   }
 }
 
-export function openSalesDekontPdf(order) {
-  const dekont = buildSalesDekont(order)
-  return openReportPdf(`${order.number}.pdf`, dekont)
+export function openSalesDekontPdf(sale) {
+  return openReportPdf(`${sale.documentNumber}.pdf`, buildSalesDekont(sale))
 }

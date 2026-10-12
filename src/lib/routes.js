@@ -1,8 +1,9 @@
 export const routes = {
   login: '/login',
-  setup: '/setup',
+  selectCompany: '/select-company',
   dashboard: '/',
   inventory: '/inventory',
+  warehouses: '/warehouses',
   stores: '/stores',
   products: '/products',
   customers: '/customers',
@@ -11,4 +12,5 @@ export const routes = {
   pos: '/pos',
   hr: '/hr',
   finance: '/finance',
+  reports: '/reports',
 }

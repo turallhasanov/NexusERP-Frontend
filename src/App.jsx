@@ -4,17 +4,19 @@ import { AuthShell } from '@/components/layout/AuthShell'
 import { RequireAuth } from '@/components/layout/RequireAuth'
 import { RequireCompany } from '@/components/layout/RequireCompany'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { CompanySetupPage } from '@/features/company/pages/CompanySetupPage'
+import { SelectCompanyPage } from '@/features/company/pages/SelectCompanyPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { FinancePage } from '@/features/finance/pages/FinancePage'
 import { HrPage } from '@/features/hr/pages/HrPage'
 import { InventoryPage } from '@/features/inventory/pages/InventoryPage'
+import { WarehousesPage } from '@/features/warehouses/pages/WarehousesPage'
 import { StoresPage } from '@/features/stores/pages/StoresPage'
 import { CustomersPage } from '@/features/customers/pages/CustomersPage'
 import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { PurchasesPage } from '@/features/purchases/pages/PurchasesPage'
 import { SalesPage } from '@/features/sales/pages/SalesPage'
 import { PosPage } from '@/features/pos/pages/PosPage'
+import { ReportsPage } from '@/features/reports/pages/ReportsPage'
 import { routes } from '@/lib/routes'
 
 export default function App() {
@@ -26,12 +28,13 @@ export default function App() {
 
       <Route element={<RequireAuth />}>
         <Route element={<AuthShell />}>
-          <Route path={routes.setup} element={<CompanySetupPage />} />
+          <Route path={routes.selectCompany} element={<SelectCompanyPage />} />
         </Route>
         <Route element={<RequireCompany />}>
           <Route element={<AppShell />}>
             <Route path={routes.dashboard} element={<DashboardPage />} />
             <Route path={routes.inventory} element={<InventoryPage />} />
+            <Route path={routes.warehouses} element={<WarehousesPage />} />
             <Route path={routes.stores} element={<StoresPage />} />
             <Route path={routes.products} element={<ProductsPage />} />
             <Route path={routes.customers} element={<CustomersPage />} />
@@ -40,10 +43,13 @@ export default function App() {
             <Route path={routes.pos} element={<PosPage />} />
             <Route path={routes.hr} element={<HrPage />} />
             <Route path={routes.finance} element={<FinancePage />} />
+            <Route path={routes.reports} element={<ReportsPage />} />
           </Route>
         </Route>
       </Route>
 
+      {/* Old company-setup URL, kept so existing bookmarks still land on the right page. */}
+      <Route path="/setup" element={<Navigate to={routes.selectCompany} replace />} />
       <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
     </Routes>
   )

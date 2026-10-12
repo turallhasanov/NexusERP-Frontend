@@ -1,11 +1,14 @@
-import { useOrdersStore } from '@/store/orders-store'
+import { SALE_APPROVED, SALE_DRAFT, useOrdersStore } from '@/store/orders-store'
 
 export function useOrders() {
-  const { orders } = useOrdersStore()
+  const { orders, isLoading, error, reload } = useOrdersStore()
 
   return {
     orders,
-    openOrders: orders.filter((order) => order.status === 'open').length,
-    closedOrders: orders.filter((order) => order.status === 'closed').length,
+    draftOrders: orders.filter((order) => order.status === SALE_DRAFT).length,
+    approvedOrders: orders.filter((order) => order.status === SALE_APPROVED).length,
+    isLoading,
+    error,
+    reload,
   }
 }

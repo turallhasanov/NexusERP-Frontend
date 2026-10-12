@@ -3,9 +3,9 @@ import { routes } from '@/lib/routes'
 import { useAuthStore } from '@/store/auth-store'
 
 export function RequireAuth() {
-  const { user } = useAuthStore()
+  const { token } = useAuthStore()
 
-  if (!user) {
+  if (!token) {
     return <Navigate to={routes.login} replace />
   }
 

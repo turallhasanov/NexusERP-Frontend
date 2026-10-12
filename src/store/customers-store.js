@@ -1,55 +1,24 @@
-import { useSyncExternalStore } from 'react'
+import { createApiCollection } from '@/store/create-api-collection'
 
-const INITIAL_CUSTOMERS = [
-  { id: '1', name: 'Bakı Ofis MMC', code: 'KNT-001', voen: '1401234561' },
-  { id: '2', name: 'Gəncə Ticarət', code: 'KNT-002', voen: '1702345672' },
-  { id: '3', name: 'Sumqayıt Təchizat', code: 'KNT-003', voen: '1503456783' },
-]
+const customers = createApiCollection({
+  path: '/customers',
+  // The server stores a missing VÖEN as null; the UI and dekonts expect a string.
+  fromApi: (customer) => ({ ...customer, voen: customer.voen ?? '' }),
+})
 
-let nextSequence = INITIAL_CUSTOMERS.length + 1
-
-let state = {
-  customers: INITIAL_CUSTOMERS,
-}
-
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
-  }
-}
-
-export function getCustomersState() {
-  return state
-}
-
-export function subscribeCustomers(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+export const loadCustomers = customers.load
 
 export function getCustomer(customerId) {
-  return state.customers.find((customer) => customer.id === customerId) ?? null
+  return customers.find(customerId)
 }
 
-export function addCustomer({ name, voen }) {
-  const customer = {
-    id: String(nextSequence),
-    name,
-    voen,
-    code: `KNT-${String(nextSequence).padStart(3, '0')}`,
-  }
-
-  nextSequence += 1
-  state = { customers: [customer, ...state.customers] }
-  emit()
-
-  return { ok: true }
+// Adds a row returned by POST /api/customers.
+export function addCustomer(customer) {
+  return customers.add(customer)
 }
 
 export function useCustomersStore() {
-  return useSyncExternalStore(subscribeCustomers, getCustomersState, getCustomersState)
+  const { items, isLoading, error, reload } = customers.useCollection()
+
+  return { customers: items, isLoading, error, reload }
 }

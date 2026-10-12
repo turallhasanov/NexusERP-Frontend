@@ -7,15 +7,13 @@ import { useProducts } from '@/features/inventory/api/use-products'
 import { useWarehouses } from '@/features/inventory/api/use-warehouses'
 import { ProductTable } from '@/features/inventory/components/ProductTable'
 import { ReceiveStockForm } from '@/features/inventory/components/ReceiveStockForm'
-import { WarehouseForm } from '@/features/inventory/components/WarehouseForm'
-import { WarehouseTable } from '@/features/inventory/components/WarehouseTable'
 import { FinanceReportActions } from '@/features/finance/components/FinanceReportActions'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
 export function InventoryPage() {
-  const { products, criticalStock } = useProducts()
+  const { products, criticalStock, isLoading, error, reload } = useProducts()
   const { warehouses } = useWarehouses()
   const [preview, setPreview] = useState(false)
   const [shouldPrint, setShouldPrint] = useState(false)
@@ -38,7 +36,7 @@ export function InventoryPage() {
   }
 
   return (
-    <PageContainer title="Anbar" description="Depolar, məhsul girişi və cari qalıq.">
+    <PageContainer title="Anbar" description="Məhsul girişi və depolar üzrə cari qalıq.">
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className={styles.sectionTitle}>Anbar hesabatı</h2>
@@ -66,11 +64,14 @@ export function InventoryPage() {
           </Card>
         </div>
       </section>
-      <h2 className={styles.sectionTitle}>Depolar</h2>
-      <WarehouseForm />
-      <WarehouseTable warehouses={warehouses} />
       <ReceiveStockForm />
-      <ProductTable products={products} warehouses={warehouses} />
+      <ProductTable
+        products={products}
+        warehouses={warehouses}
+        isLoading={isLoading}
+        error={error}
+        onRetry={reload}
+      />
       {preview ? (
         <DekontPreview
           title={dekont.title}

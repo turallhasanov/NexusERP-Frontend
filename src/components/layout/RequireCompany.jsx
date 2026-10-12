@@ -1,12 +1,12 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useCompany } from '@/features/company/api/use-company'
 import { routes } from '@/lib/routes'
+import { useAuthStore } from '@/store/auth-store'
 
 export function RequireCompany() {
-  const { company } = useCompany()
+  const { activeCompanyId } = useAuthStore()
 
-  if (!company) {
-    return <Navigate to={routes.setup} replace />
+  if (!activeCompanyId) {
+    return <Navigate to={routes.selectCompany} replace />
   }
 
   return <Outlet />

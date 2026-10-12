@@ -3,6 +3,7 @@ import { routes } from '@/lib/routes'
 export const navItems = [
   { label: 'İdarə paneli', href: routes.dashboard },
   { label: 'Anbar', href: routes.inventory },
+  { label: 'Depo', href: routes.warehouses },
   { label: 'Mağaza', href: routes.stores },
   { label: 'Məhsul', href: routes.products },
   { label: 'Kontragent', href: routes.customers },
@@ -11,4 +12,5 @@ export const navItems = [
   { label: 'POS', href: routes.pos },
   { label: 'İnsan resursları', href: routes.hr },
   { label: 'Maliyyə', href: routes.finance },
+  { label: 'Hesabatlar', href: routes.reports },
 ]

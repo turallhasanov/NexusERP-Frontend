@@ -1,26 +1,33 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { Card } from '@/components/ui/card'
+import { StatCard } from '@/components/ui/stat-card'
+import { Spinner } from '@/components/ui/spinner'
 import {
-  buildDashboardCards,
   buildDashboardDekont,
+  buildKpiCards,
+  buildOperationsCards,
   openDashboardDekontPdf,
+  rangeLabel,
 } from '@/features/dashboard/api/dashboard-dekont'
-import { useDashboardSummary } from '@/features/dashboard/api/use-dashboard-summary'
+import { useDashboardSummary, useOperationsSummary } from '@/features/dashboard/api/use-dashboard-summary'
 import { FinanceReportActions } from '@/features/finance/components/FinanceReportActions'
 import { PeriodFilter } from '@/features/finance/components/PeriodFilter'
 import { useDocumentTitle } from '@/hooks/use-document-title'
-import { PERIOD_MONTH } from '@/lib/date'
+import { RANGE_MONTH, RANGE_PRESETS } from '@/lib/report-range'
+import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
 
 export function DashboardPage() {
-  const [period, setPeriod] = useState(PERIOD_MONTH)
+  const [rangeId, setRangeId] = useState(RANGE_MONTH)
   const [preview, setPreview] = useState(false)
   const [shouldPrint, setShouldPrint] = useState(false)
-  const summary = useDashboardSummary(period)
-  const cards = buildDashboardCards(summary, period)
-  const dekont = buildDashboardDekont(cards, period)
+  const summary = useDashboardSummary(rangeId)
+  const operations = useOperationsSummary()
+  const kpiCards = buildKpiCards(summary.data)
+  const operationsCards = buildOperationsCards(operations)
+  const dekont = buildDashboardDekont([...kpiCards, ...operationsCards], rangeId)
   useDocumentTitle('İdarə paneli')
 
   useEffect(() => {
@@ -33,34 +40,54 @@ export function DashboardPage() {
   }, [shouldPrint])
 
   function viewPdf() {
-    void openDashboardDekontPdf(cards, period)
+    void openDashboardDekontPdf([...kpiCards, ...operationsCards], rangeId)
     setPreview(true)
   }
 
   return (
     <PageContainer
       title="İdarə paneli"
-      description="Dövrə görə xülasə rəqəmləri."
-      action={<PeriodFilter value={period} onChange={setPeriod} />}
+      description={rangeLabel(rangeId)}
+      action={<PeriodFilter value={rangeId} onChange={setRangeId} options={RANGE_PRESETS} />}
     >
       <section className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className={styles.sectionTitle}>Xülasə hesabatı</h2>
-          <FinanceReportActions
-            onView={() => setPreview(true)}
-            onPrint={() => {
-              setPreview(true)
-              setShouldPrint(true)
-            }}
-            onPdf={viewPdf}
-          />
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            Maliyyə göstəriciləri {summary.isLoading ? <Spinner className="ml-2 align-middle" /> : null}
+          </h2>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link to={routes.reports} className={styles.textAction}>
+              Ətraflı hesabatlar
+            </Link>
+            <FinanceReportActions
+              onView={() => setPreview(true)}
+              onPrint={() => {
+                setPreview(true)
+                setShouldPrint(true)
+              }}
+              onPdf={viewPdf}
+            />
+          </div>
         </div>
-        <div className={styles.summaryGrid}>
-          {cards.map((card) => (
-            <Card key={card.label}>
-              <p className={styles.summaryLabel}>{card.label}</p>
-              <p className={styles.summaryValue}>{card.value}</p>
-            </Card>
+        {summary.error ? (
+          <div className={styles.errorRow}>
+            <span>{summary.error}</span>
+            <button type="button" className={styles.textAction} onClick={summary.reload}>
+              Yenidən cəhd et
+            </button>
+          </div>
+        ) : null}
+        <div className={styles.kpiGrid}>
+          {kpiCards.map((card) => (
+            <StatCard key={card.label} {...card} isLoading={summary.isLoading} />
+          ))}
+        </div>
+      </section>
+      <section className="space-y-4">
+        <h2 className={styles.sectionTitle}>Əməliyyatlar</h2>
+        <div className={styles.kpiGrid}>
+          {operationsCards.map((card) => (
+            <StatCard key={card.label} {...card} />
           ))}
         </div>
       </section>

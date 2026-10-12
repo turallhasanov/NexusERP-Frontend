@@ -1,44 +1,120 @@
+import { useEffect, useMemo, useState } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 import { ProductTable } from '@/features/inventory/components/ProductTable'
 import { ProductForm } from '@/features/products/components/ProductForm'
 import { ProductTypeForm } from '@/features/products/components/ProductTypeForm'
 import { ProductUnitForm } from '@/features/products/components/ProductUnitForm'
+import { searchProducts } from '@/features/products/api/search-products'
 import { useProductTypes } from '@/features/products/api/use-product-types'
 import { useProductUnits } from '@/features/products/api/use-product-units'
 import { useProducts } from '@/features/inventory/api/use-products'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { styles } from '@/lib/styles'
+import { toProduct } from '@/store/inventory-store'
+
+const SEARCH_DELAY_MS = 300
 
 export function ProductsPage() {
-  const { products } = useProducts()
-  const { types } = useProductTypes()
-  const { units } = useProductUnits()
+  const { products, isLoading: productsLoading } = useProducts()
+  const { types, isLoading: typesLoading } = useProductTypes()
+  const { units, isLoading: unitsLoading } = useProductUnits()
+  const [query, setQuery] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [search, setSearch] = useState({ items: [], isLoading: true, error: '' })
   useDocumentTitle('Məhsul')
 
+  useEffect(() => {
+    let cancelled = false
+
+    // Typing is debounced; a filter change or refresh searches right away.
+    const timer = setTimeout(() => {
+      setSearch((current) => ({ ...current, isLoading: true, error: '' }))
+
+      searchProducts({ q: query, categoryId })
+        .then((items) => {
+          if (!cancelled) {
+            setSearch({ items, isLoading: false, error: '' })
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            setSearch({ items: [], isLoading: false, error: error.message })
+          }
+        })
+    }, query ? SEARCH_DELAY_MS : 0)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [query, categoryId, refreshKey])
+
+  // Search returns catalog rows; stock comes from the inventory cache when it has the product.
+  const rows = useMemo(() => {
+    const cached = new Map(products.map((product) => [product.id, product]))
+    return search.items.map((product) => cached.get(product.id) ?? toProduct(product))
+  }, [products, search.items])
+
+  const isFiltered = query.trim() !== '' || categoryId !== ''
+
   return (
-    <PageContainer title="Məhsul" description="Tip, ölçü vahidi, barkod və satış qiyməti.">
+    <PageContainer title="Məhsul" description="Kateqoriya, ölçü vahidi, barkod, alış və satış qiyməti.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Məhsul sayı</p>
-          <p className={styles.summaryValue}>{products.length}</p>
+          <p className={styles.summaryValue}>{productsLoading ? '…' : products.length}</p>
         </Card>
         <Card>
-          <p className={styles.summaryLabel}>Tip sayı</p>
-          <p className={styles.summaryValue}>{types.length}</p>
+          <p className={styles.summaryLabel}>Kateqoriya sayı</p>
+          <p className={styles.summaryValue}>{typesLoading ? '…' : types.length}</p>
         </Card>
         <Card>
           <p className={styles.summaryLabel}>Vahid sayı</p>
-          <p className={styles.summaryValue}>{units.length}</p>
+          <p className={styles.summaryValue}>{unitsLoading ? '…' : units.length}</p>
         </Card>
       </div>
-      <h2 className={styles.sectionTitle}>Məhsul tipi</h2>
+      <h2 className={styles.sectionTitle}>Kateqoriya</h2>
       <ProductTypeForm />
       <h2 className={styles.sectionTitle}>Ölçü vahidi</h2>
       <ProductUnitForm />
+      <h2 className={styles.sectionTitle}>Yeni məhsul</h2>
+      <ProductForm onCreated={() => setRefreshKey((current) => current + 1)} />
       <h2 className={styles.sectionTitle}>Kataloq</h2>
-      <ProductForm />
-      <ProductTable products={products} />
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarSearch}>
+          <Field label="Axtarış">
+            <Input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Ad, kod və ya barkod"
+            />
+          </Field>
+        </div>
+        <Field label="Kateqoriya">
+          <select className={styles.input} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+            <option value="">Bütün kateqoriyalar</option>
+            {types.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <p className={styles.summaryLabel}>{search.isLoading ? <Spinner /> : `${rows.length} məhsul`}</p>
+      </div>
+      <ProductTable
+        products={rows}
+        isLoading={search.isLoading && search.items.length === 0}
+        error={search.error}
+        onRetry={() => setRefreshKey((current) => current + 1)}
+        emptyText={isFiltered ? 'Axtarışa uyğun məhsul tapılmadı.' : 'Hələ məhsul yoxdur.'}
+      />
     </PageContainer>
   )
 }

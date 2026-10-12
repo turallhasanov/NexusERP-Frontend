@@ -5,6 +5,7 @@ const badgeVariants = {
   muted: styles.badgeMuted,
   success: styles.badgeSuccess,
   warning: styles.badgeWarning,
+  danger: styles.badgeDanger,
 }
 
 export function Badge({ className, variant = 'muted', ...props }) {

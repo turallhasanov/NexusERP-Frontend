@@ -1,63 +1,21 @@
-import { useSyncExternalStore } from 'react'
+import { createApiCollection } from '@/store/create-api-collection'
 
-const INITIAL_TYPES = [
-  { id: '1', name: 'Kağız' },
-  { id: '2', name: 'Kartric' },
-  { id: '3', name: 'Qablaşdırma' },
-]
+// "Product types" in the UI are the backend's product categories (GET /api/categories → { id, code, name }).
+const types = createApiCollection({ path: '/categories' })
 
-let nextSequence = INITIAL_TYPES.length + 1
-
-let state = {
-  types: INITIAL_TYPES,
-}
-
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
-  }
-}
-
-export function getProductTypesState() {
-  return state
-}
-
-export function subscribeProductTypes(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+export const loadProductTypes = types.load
 
 export function getProductType(typeId) {
-  return state.types.find((type) => type.id === typeId) ?? null
+  return types.find(typeId)
 }
 
-export function addProductType({ name }) {
-  const trimmed = name.trim()
-
-  if (!trimmed) {
-    return { ok: false, error: 'Tip adı tələb olunur.' }
-  }
-
-  if (state.types.some((type) => type.name.toLowerCase() === trimmed.toLowerCase())) {
-    return { ok: false, error: 'Bu tip artıq var.' }
-  }
-
-  const type = {
-    id: String(nextSequence),
-    name: trimmed,
-  }
-
-  nextSequence += 1
-  state = { types: [type, ...state.types] }
-  emit()
-
-  return { ok: true }
+// Adds a row returned by POST /api/categories.
+export function addProductType(type) {
+  return types.add(type)
 }
 
 export function useProductTypesStore() {
-  return useSyncExternalStore(subscribeProductTypes, getProductTypesState, getProductTypesState)
+  const { items, isLoading, error, reload } = types.useCollection()
+
+  return { types: items, isLoading, error, reload }
 }
