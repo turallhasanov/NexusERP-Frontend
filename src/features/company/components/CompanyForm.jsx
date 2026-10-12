@@ -16,6 +16,7 @@ export function CompanyForm() {
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   function updateField(field) {
     return (event) => {
@@ -26,10 +27,14 @@ export function CompanyForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    const result = createCompany({ name: form.name, voen: form.voen })
+    const result = await createCompany({ name: form.name, voen: form.voen })
+
+    setSubmitting(false)
 
     if (!result.ok) {
       setError(result.error)
@@ -57,7 +62,9 @@ export function CompanyForm() {
         />
       </Field>
       {error ? <p className={styles.pageDescription}>{error}</p> : null}
-      <Button type="submit">Şirkəti yarat</Button>
+      <Button type="submit" disabled={submitting}>
+        {submitting ? 'Yaradılır…' : 'Şirkəti yarat'}
+      </Button>
     </form>
   )
 }

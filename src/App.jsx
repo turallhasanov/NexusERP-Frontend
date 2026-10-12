@@ -4,7 +4,7 @@ import { AuthShell } from '@/components/layout/AuthShell'
 import { RequireAuth } from '@/components/layout/RequireAuth'
 import { RequireCompany } from '@/components/layout/RequireCompany'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { CompanySetupPage } from '@/features/company/pages/CompanySetupPage'
+import { SelectCompanyPage } from '@/features/company/pages/SelectCompanyPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { FinancePage } from '@/features/finance/pages/FinancePage'
 import { HrPage } from '@/features/hr/pages/HrPage'
@@ -26,7 +26,7 @@ export default function App() {
 
       <Route element={<RequireAuth />}>
         <Route element={<AuthShell />}>
-          <Route path={routes.setup} element={<CompanySetupPage />} />
+          <Route path={routes.selectCompany} element={<SelectCompanyPage />} />
         </Route>
         <Route element={<RequireCompany />}>
           <Route element={<AppShell />}>
@@ -44,6 +44,8 @@ export default function App() {
         </Route>
       </Route>
 
+      {/* Old company-setup URL, kept so existing bookmarks still land on the right page. */}
+      <Route path="/setup" element={<Navigate to={routes.selectCompany} replace />} />
       <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
     </Routes>
   )

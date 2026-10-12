@@ -3,27 +3,33 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { signIn } from '@/features/auth/api/sign-in'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
-import { DEMO_USER, setAuthUser } from '@/store/auth-store'
-import { getCompanyState } from '@/store/company-store'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    if (!email.trim() || !password.trim()) {
-      setError('E-poçt və şifrə tələb olunur.')
+    const result = await signIn({ email, password })
+
+    setSubmitting(false)
+
+    if (!result.ok) {
+      setError(result.error)
       return
     }
 
-    setAuthUser(DEMO_USER)
-    navigate(getCompanyState().company ? routes.dashboard : routes.setup, { replace: true })
+    // The company page picks the user's company (or offers to create one) and then opens the dashboard.
+    navigate(routes.selectCompany, { replace: true })
   }
 
   return (
@@ -33,7 +39,7 @@ export function LoginForm() {
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="aysel@nexuserp.az"
+          placeholder="demo@nexuserp.az"
           autoComplete="email"
         />
       </Field>
@@ -47,7 +53,9 @@ export function LoginForm() {
         />
       </Field>
       {error ? <p className={styles.pageDescription}>{error}</p> : null}
-      <Button type="submit">Daxil ol</Button>
+      <Button type="submit" disabled={submitting}>
+        {submitting ? 'Yoxlanılır…' : 'Daxil ol'}
+      </Button>
     </form>
   )
 }

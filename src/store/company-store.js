@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
+// Cached details ({ id, name, voen }) of the active company, for the sidebar and dekonts.
+// The source of truth is GET /api/company; this copy only survives page reloads.
 const STORAGE_KEY = 'nexuserp-company'
 
 function readStoredCompany() {
@@ -12,7 +14,7 @@ function readStoredCompany() {
 
     const parsed = JSON.parse(raw)
 
-    if (!parsed?.name) {
+    if (!parsed?.id || !parsed?.name) {
       return null
     }
 
@@ -45,9 +47,9 @@ export function subscribeCompany(listener) {
   }
 }
 
-export function setCompany({ name, voen }) {
+export function setCompany({ id, name, voen }) {
   const company = {
-    id: '1',
+    id,
     name,
     voen: voen || '',
   }
@@ -55,8 +57,12 @@ export function setCompany({ name, voen }) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(company))
   state = { company }
   emit()
+}
 
-  return { ok: true }
+export function clearCompany() {
+  localStorage.removeItem(STORAGE_KEY)
+  state = { company: null }
+  emit()
 }
 
 export function useCompanyStore() {

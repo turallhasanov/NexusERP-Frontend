@@ -1,31 +1,76 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'https://localhost:7001'
+import axios from 'axios'
+import { getAuthState, logout } from '@/store/auth-store'
 
-export async function apiClient(path, options = {}) {
-  const headers = new Headers({
-    Accept: 'application/json',
-  })
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5299/api'
 
-  if (options.body !== undefined) {
-    headers.set('Content-Type', 'application/json')
+// Requests where a 401 means "wrong credentials", not "session expired": show the error, keep the page.
+const CREDENTIAL_PATHS = ['/auth/login']
+
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
   }
-
-  if (options.token) {
-    headers.set('Authorization', `Bearer ${options.token}`)
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: options.method ?? 'GET',
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
-
-  if (!response.ok) {
-    throw new Error(`API ${response.status}`)
-  }
-
-  if (response.status === 204) {
-    return undefined
-  }
-
-  return response.json()
 }
+
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    Accept: 'application/json',
+  },
+})
+
+apiClient.interceptors.request.use((config) => {
+  const { token, activeCompanyId } = getAuthState()
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+
+  // The server takes the company from the token's companyId claim; this header is informational only.
+  if (activeCompanyId) {
+    config.headers['X-Company-Id'] = activeCompanyId
+  }
+
+  return config
+})
+
+// Callers get the payload, not the axios response: { ok: true, data } → data,
+// { ok: true, ...fields } → { ...fields }. Failures reject with an ApiError carrying the server's message.
+apiClient.interceptors.response.use(
+  (response) => {
+    const body = response.data
+
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      return body
+    }
+
+    if (body.ok === false) {
+      return Promise.reject(new ApiError(body.error ?? 'Naməlum xəta baş verdi.', response.status))
+    }
+
+    if ('data' in body) {
+      return body.data
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    const { ok, ...payload } = body
+    return payload
+  },
+  (error) => {
+    const status = error.response?.status
+    const message = error.response?.data?.error
+
+    if (status === 401 && !CREDENTIAL_PATHS.includes(error.config?.url)) {
+      // Every page except /login sits behind RequireAuth, so clearing the session redirects to /login.
+      logout()
+    }
+
+    if (!error.response) {
+      return Promise.reject(new ApiError('Serverə qoşulmaq mümkün olmadı.', 0))
+    }
+
+    return Promise.reject(new ApiError(message ?? `Sorğu uğursuz oldu (${status}).`, status))
+  },
+)
