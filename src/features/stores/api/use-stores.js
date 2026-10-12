@@ -1,9 +1,7 @@
 import { useStoresStore } from '@/store/stores-store'
 
 export function useStores() {
-  const { stores } = useStoresStore()
+  const { stores, isLoading, error, reload } = useStoresStore()
 
-  return {
-    stores,
-  }
+  return { stores, isLoading, error, reload }
 }

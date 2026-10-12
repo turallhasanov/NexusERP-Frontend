@@ -3,19 +3,22 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useWarehouses } from '@/features/inventory/api/use-warehouses'
 import { createStore } from '@/features/stores/api/create-store'
 import { styles } from '@/lib/styles'
-import { useWarehousesStore } from '@/store/warehouses-store'
+import { showToast } from '@/store/toast-store'
 
 const EMPTY_FORM = {
   name: '',
   warehouseId: '',
+  address: '',
 }
 
 export function StoreForm() {
-  const { warehouses } = useWarehousesStore()
+  const { warehouses, isLoading: warehousesLoading } = useWarehouses()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   function updateField(field) {
     return (event) => {
@@ -26,18 +29,14 @@ export function StoreForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    const name = form.name.trim()
-    const warehouseId = form.warehouseId
+    const result = await createStore(form)
 
-    if (!name || !warehouseId) {
-      setError('Ad və depo tələb olunur.')
-      return
-    }
-
-    const result = createStore({ name, warehouseId })
+    setSubmitting(false)
 
     if (!result.ok) {
       setError(result.error)
@@ -45,7 +44,7 @@ export function StoreForm() {
     }
 
     setForm(EMPTY_FORM)
-    setError('')
+    showToast(`Mağaza yaradıldı: ${result.store.code}`)
   }
 
   return (
@@ -53,19 +52,11 @@ export function StoreForm() {
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
           <Field label="Ad">
-            <Input
-              value={form.name}
-              onChange={updateField('name')}
-              placeholder="Bakı mağazası"
-            />
+            <Input value={form.name} onChange={updateField('name')} placeholder="Bakı mağazası" />
           </Field>
           <Field label="Depo">
-            <select
-              className={styles.input}
-              value={form.warehouseId}
-              onChange={updateField('warehouseId')}
-            >
-              <option value="">Depo seçin</option>
+            <select className={styles.input} value={form.warehouseId} onChange={updateField('warehouseId')}>
+              <option value="">{warehousesLoading ? 'Yüklənir…' : 'Depo seçin'}</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}
@@ -73,9 +64,14 @@ export function StoreForm() {
               ))}
             </select>
           </Field>
+          <Field label="Ünvan">
+            <Input value={form.address} onChange={updateField('address')} placeholder="Bakı, 28 May küç." />
+          </Field>
         </div>
-        {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">Mağazanı yadda saxla</Button>
+        {error ? <p className={styles.formError}>{error}</p> : null}
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Yadda saxlanılır…' : 'Mağazanı yadda saxla'}
+        </Button>
       </form>
     </Card>
   )

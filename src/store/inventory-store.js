@@ -1,41 +1,61 @@
-import { useSyncExternalStore } from 'react'
-import { getProductType } from '@/store/product-types-store'
-import { formatQuantity, getProductUnit } from '@/store/product-units-store'
+import { apiClient } from '@/services/api-client'
+import { createApiCollection } from '@/store/create-api-collection'
+import { formatQuantity } from '@/store/product-units-store'
 import { getWarehouse } from '@/store/warehouses-store'
 
-const INITIAL_PRODUCTS = [
-  { id: '1', name: 'A4 surətkağızı', sku: 'STK-001', barcode: '2000001000012', typeId: '1', unitId: '1', unitPrice: 9, quantity: 120, minQuantity: 40, stocks: { '1': 120 } },
-  { id: '2', name: 'Mürəkkəb kartrici', sku: 'STK-014', barcode: '2000001000142', typeId: '2', unitId: '1', unitPrice: 28, quantity: 8, minQuantity: 10, stocks: { '1': 8 } },
-  { id: '3', name: 'Bağlama lenti', sku: 'STK-032', barcode: '2000001000326', typeId: '3', unitId: '1', unitPrice: 4.5, quantity: 54, minQuantity: 20, stocks: { '1': 54 } },
-]
+// Same default as the backend dashboard's low-stock threshold; products have no per-item minimum yet.
+export const DEFAULT_MIN_QUANTITY = 5
 
-let nextSequence = INITIAL_PRODUCTS.length + 1
+// API product → the shape the modules use. `sku` is the server's product code (MHS-001), `typeId` its
+// category and `unitPrice` the sale price. Stock per warehouse comes from GET /api/inventory/stocks.
+export function toProduct(product, stockRows = []) {
+  const stocks = {}
 
-let state = {
-  products: INITIAL_PRODUCTS,
-}
+  for (const row of stockRows) {
+    stocks[row.warehouseId] = row.quantity
+  }
 
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
+  return {
+    id: product.id,
+    name: product.name,
+    sku: product.code,
+    barcode: product.barcode,
+    typeId: product.categoryId,
+    unitId: product.unitId,
+    unitPrice: product.salePrice,
+    purchasePrice: product.purchasePrice,
+    isActive: product.isActive,
+    minQuantity: DEFAULT_MIN_QUANTITY,
+    quantity: Object.values(stocks).reduce((sum, quantity) => sum + quantity, 0),
+    stocks,
   }
 }
 
-export function getInventoryState() {
-  return state
+async function fetchProductsWithStock() {
+  const [{ items: products }, { items: stockRows }] = await Promise.all([
+    apiClient.get('/products'),
+    apiClient.get('/inventory/stocks'),
+  ])
+
+  const rowsByProduct = new Map()
+
+  for (const row of stockRows) {
+    rowsByProduct.set(row.productId, [...(rowsByProduct.get(row.productId) ?? []), row])
+  }
+
+  return products.map((product) => ({ product, stockRows: rowsByProduct.get(product.id) ?? [] }))
 }
 
-export function subscribeInventory(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+const inventory = createApiCollection({
+  fetchItems: fetchProductsWithStock,
+  // Loaded rows arrive as { product, stockRows }; rows added after POST /api/products are bare products.
+  fromApi: (row) => (row.product ? toProduct(row.product, row.stockRows) : toProduct(row)),
+})
+
+export const loadProducts = inventory.load
 
 export function getProduct(productId) {
-  return state.products.find((product) => product.id === productId) ?? null
+  return inventory.find(productId)
 }
 
 export function getProductByBarcode(barcode) {
@@ -46,12 +66,19 @@ export function getProductByBarcode(barcode) {
   }
 
   return (
-    state.products.find(
+    inventory.getState().items.find(
       (product) => product.barcode === code || product.sku.toLowerCase() === code.toLowerCase(),
     ) ?? null
   )
 }
 
+// Adds a product returned by POST /api/products; a new product has no stock yet.
+export function addProduct(product) {
+  return inventory.add(product)
+}
+
+// deductStock and receiveStock change the cached stock only. Purchases, sales and POS still run in the
+// browser; they move to the API (and server-side stock) in their own commits.
 export function deductStock(productId, warehouseId, quantity) {
   const product = getProduct(productId)
 
@@ -59,9 +86,7 @@ export function deductStock(productId, warehouseId, quantity) {
     return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
   }
 
-  const warehouse = getWarehouse(warehouseId)
-
-  if (!warehouse) {
+  if (!getWarehouse(warehouseId)) {
     return { ok: false, error: 'Depo tapılmadı.' }
   }
 
@@ -71,100 +96,35 @@ export function deductStock(productId, warehouseId, quantity) {
     return { ok: false, error: `Bu depoda yalnız ${formatQuantity(available, product.unitId)} var.` }
   }
 
-  state = {
-    products: state.products.map((item) =>
-      item.id === productId
-        ? {
-            ...item,
-            quantity: item.quantity - quantity,
-            stocks: {
-              ...item.stocks,
-              [warehouseId]: available - quantity,
-            },
-          }
-        : item,
-    ),
-  }
-  emit()
-
-  return { ok: true }
-}
-
-export function addProduct({ name, barcode, typeId, unitId, unitPrice, quantity, minQuantity }) {
-  const code = barcode.trim()
-
-  if (!code) {
-    return { ok: false, error: 'Barkod tələb olunur.' }
-  }
-
-  if (!getProductType(typeId)) {
-    return { ok: false, error: 'Məhsul tipi tələb olunur.' }
-  }
-
-  if (!getProductUnit(unitId)) {
-    return { ok: false, error: 'Ölçü vahidi tələb olunur.' }
-  }
-
-  if (state.products.some((product) => product.barcode === code)) {
-    return { ok: false, error: 'Bu barkod artıq var.' }
-  }
-
-  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-    return { ok: false, error: 'Qiymət 0-dan böyük olmalıdır.' }
-  }
-
-  const product = {
-    id: String(nextSequence),
-    name,
-    sku: `STK-${String(nextSequence).padStart(3, '0')}`,
-    barcode: code,
-    typeId,
-    unitId,
-    unitPrice,
-    quantity,
-    minQuantity,
-    stocks: { '1': quantity },
-  }
-
-  nextSequence += 1
-  state = { products: [product, ...state.products] }
-  emit()
+  inventory.update(productId, (item) => ({
+    ...item,
+    quantity: item.quantity - quantity,
+    stocks: { ...item.stocks, [warehouseId]: available - quantity },
+  }))
 
   return { ok: true }
 }
 
 export function receiveStock(productId, warehouseId, quantity) {
-  const product = getProduct(productId)
-
-  if (!product) {
+  if (!getProduct(productId)) {
     return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
   }
 
-  const warehouse = getWarehouse(warehouseId)
-
-  if (!warehouse) {
+  if (!getWarehouse(warehouseId)) {
     return { ok: false, error: 'Depo tapılmadı.' }
   }
 
-  state = {
-    products: state.products.map((item) =>
-      item.id === productId
-        ? {
-            ...item,
-            quantity: item.quantity + quantity,
-            stocks: {
-              ...item.stocks,
-              [warehouseId]: (item.stocks[warehouseId] ?? 0) + quantity,
-            },
-          }
-        : item,
-    ),
-  }
-  emit()
+  inventory.update(productId, (item) => ({
+    ...item,
+    quantity: item.quantity + quantity,
+    stocks: { ...item.stocks, [warehouseId]: (item.stocks[warehouseId] ?? 0) + quantity },
+  }))
 
   return { ok: true }
 }
 
 export function useInventoryStore() {
-  return useSyncExternalStore(subscribeInventory, getInventoryState, getInventoryState)
+  const { items, isLoading, error, reload } = inventory.useCollection()
+
+  return { products: items, isLoading, error, reload }
 }
