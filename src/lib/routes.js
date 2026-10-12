@@ -12,4 +12,5 @@ export const routes = {
   pos: '/pos',
   hr: '/hr',
   finance: '/finance',
+  reports: '/reports',
 }

@@ -12,4 +12,5 @@ export const navItems = [
   { label: 'POS', href: routes.pos },
   { label: 'İnsan resursları', href: routes.hr },
   { label: 'Maliyyə', href: routes.finance },
+  { label: 'Hesabatlar', href: routes.reports },
 ]

@@ -1,58 +1,35 @@
 import { payrollForPeriod } from '@/features/hr/api/payroll'
-import { isInPeriod, PERIOD_MONTH } from '@/lib/date'
+import { fetchDashboardSummary } from '@/features/reports/api/reports-api'
+import { useApiQuery } from '@/hooks/use-api-query'
+import { PERIOD_MONTH } from '@/lib/date'
+import { presetRange, toApiRange } from '@/lib/report-range'
 import { useCustomersStore } from '@/store/customers-store'
-import { useFinanceStore } from '@/store/finance-store'
 import { useHrStore } from '@/store/hr-store'
-import { useInventoryStore } from '@/store/inventory-store'
-import { SALE_APPROVED, SALE_DRAFT, useOrdersStore } from '@/store/orders-store'
-import { PURCHASE_APPROVED, usePurchasesStore } from '@/store/purchases-store'
+import { SALE_DRAFT, useOrdersStore } from '@/store/orders-store'
+import { PURCHASE_DRAFT, usePurchasesStore } from '@/store/purchases-store'
 import { useStoresStore } from '@/store/stores-store'
 
-export function useDashboardSummary(period = PERIOD_MONTH) {
+// Financial KPIs from GET /api/dashboard/summary for a range preset (today / week / month / all).
+export function useDashboardSummary(rangeId) {
+  return useApiQuery(fetchDashboardSummary, toApiRange(presetRange(rangeId)))
+}
+
+// Work-in-progress counts from the loaded lists, plus HR, which still runs in the browser.
+export function useOperationsSummary() {
   const { orders } = useOrdersStore()
-  const { products } = useInventoryStore()
+  const { purchases } = usePurchasesStore()
   const { customers } = useCustomersStore()
   const { stores } = useStoresStore()
   const { employees } = useHrStore()
-  const { expenses } = useFinanceStore()
-  const { purchases } = usePurchasesStore()
-  // Only approved documents count as revenue and cost; drafts have not moved stock or money yet.
-  const periodOrders = orders.filter(
-    (order) => order.status === SALE_APPROVED && isInPeriod(order.createdAt, period),
-  )
-  const periodPurchases = purchases.filter(
-    (purchase) => purchase.status === PURCHASE_APPROVED && isInPeriod(purchase.createdAt, period),
-  )
-  const periodExpenses = expenses.filter((expense) => isInPeriod(expense.createdAt, period))
-  const wholesaleOpen = orders.filter(
-    (order) => order.type === 'wholesale' && order.status === SALE_DRAFT,
-  ).length
-  const retailOpen = orders.filter((order) => order.type === 'retail' && order.status === SALE_DRAFT).length
   const roster = employees.filter((employee) => employee.status !== 'left')
-  const wholesaleRevenue = periodOrders
-    .filter((order) => order.type === 'wholesale')
-    .reduce((sum, order) => sum + order.total, 0)
-  const retailRevenue = periodOrders
-    .filter((order) => order.type === 'retail')
-    .reduce((sum, order) => sum + order.total, 0)
-  const expenseTotal =
-    periodPurchases.reduce((sum, purchase) => sum + purchase.total, 0) +
-    periodExpenses.reduce((sum, expense) => sum + expense.amount, 0)
 
   return {
-    wholesaleOpen,
-    retailOpen,
-    productCount: products.length,
+    draftSales: orders.filter((order) => order.status === SALE_DRAFT).length,
+    draftPurchases: purchases.filter((purchase) => purchase.status === PURCHASE_DRAFT).length,
     customerCount: customers.length,
     storeCount: stores.length,
-    purchaseCount: periodPurchases.length,
-    criticalStock: products.filter((product) => product.quantity <= product.minQuantity).length,
-    wholesaleRevenue,
-    retailRevenue,
-    expenseTotal,
-    balance: wholesaleRevenue + retailRevenue - expenseTotal,
     headcount: roster.length,
     onLeave: roster.filter((employee) => employee.status === 'leave').length,
-    payroll: payrollForPeriod(employees, period),
+    payroll: payrollForPeriod(employees, PERIOD_MONTH),
   }
 }

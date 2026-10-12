@@ -16,6 +16,7 @@ import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { PurchasesPage } from '@/features/purchases/pages/PurchasesPage'
 import { SalesPage } from '@/features/sales/pages/SalesPage'
 import { PosPage } from '@/features/pos/pages/PosPage'
+import { ReportsPage } from '@/features/reports/pages/ReportsPage'
 import { routes } from '@/lib/routes'
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path={routes.pos} element={<PosPage />} />
             <Route path={routes.hr} element={<HrPage />} />
             <Route path={routes.finance} element={<FinancePage />} />
+            <Route path={routes.reports} element={<ReportsPage />} />
           </Route>
         </Route>
       </Route>
