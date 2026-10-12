@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
-import { setAuthUser, useAuthStore } from '@/store/auth-store'
+import { signOut } from '@/features/auth/api/sign-out'
+import { useAuthStore } from '@/store/auth-store'
 import { USER_ROLE_LABELS } from '@/types/auth'
 
 export function Header() {
@@ -10,7 +11,7 @@ export function Header() {
   const { user } = useAuthStore()
 
   function handleLogout() {
-    setAuthUser(null)
+    signOut()
     navigate(routes.login, { replace: true })
   }
 
