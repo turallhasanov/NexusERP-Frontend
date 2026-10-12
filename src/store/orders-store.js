@@ -1,67 +1,52 @@
-import { useSyncExternalStore } from 'react'
+import { fromApiDate } from '@/lib/date'
+import { createApiCollection } from '@/store/create-api-collection'
+import { getCustomer } from '@/store/customers-store'
 
-let nextSequence = 1
+export const SALE_DRAFT = 'draft'
+export const SALE_APPROVED = 'approved'
 
-let state = {
-  orders: [],
-}
+// API sale (list summary or full document) → the "order" shape the sales, dashboard and finance modules use.
+// A sale without a customer is a walk-in (retail) sale; one with a customer is wholesale.
+export function toOrder(sale) {
+  const itemCount = sale.items?.length ?? sale.itemCount ?? 0
 
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
+  return {
+    id: sale.id,
+    number: sale.documentNumber,
+    status: sale.status,
+    type: sale.customerId ? 'wholesale' : 'retail',
+    customerId: sale.customerId,
+    customer: sale.customer?.name ?? 'Pərakəndə',
+    // Looked up on read, so it fills in once the customers list has loaded (it is not in the sale).
+    get voen() {
+      return (sale.customerId && getCustomer(sale.customerId)?.voen) || '—'
+    },
+    storeId: sale.storeId,
+    store: sale.store?.name ?? '—',
+    warehouseId: sale.warehouseId,
+    warehouse: sale.warehouse?.name ?? '—',
+    product: `${itemCount} məhsul`,
+    itemCount,
+    total: sale.totalAmount,
+    createdAt: fromApiDate(sale.documentDate),
   }
 }
 
-export function getOrdersState() {
-  return state
+const orders = createApiCollection({ path: '/sales', fromApi: toOrder })
+
+export const loadOrders = orders.load
+
+export function getOrder(orderId) {
+  return orders.find(orderId)
 }
 
-export function subscribeOrders(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-export function addOrder({ type, customer, voen, warehouse, store, product, quantity, unitPrice, payment, tendered, change }) {
-  const order = {
-    id: String(nextSequence),
-    number: `SAT-2026-${String(nextSequence).padStart(3, '0')}`,
-    type,
-    customer,
-    voen,
-    warehouse,
-    store,
-    product,
-    quantity,
-    unitPrice,
-    payment: payment ?? '—',
-    tendered: Number.isFinite(tendered) ? tendered : null,
-    change: Number.isFinite(change) ? change : null,
-    total: quantity * unitPrice,
-    status: 'open',
-    createdAt: new Date().toISOString(),
-  }
-
-  nextSequence += 1
-  state = { orders: [order, ...state.orders] }
-  emit()
-  return order
-}
-
-export function toggleOrderStatus(orderId) {
-  state = {
-    orders: state.orders.map((order) =>
-      order.id === orderId
-        ? { ...order, status: order.status === 'open' ? 'closed' : 'open' }
-        : order,
-    ),
-  }
-  emit()
+// Puts a sale returned by create / approve / POS checkout into the list (replacing it if already there).
+export function upsertOrder(sale) {
+  return orders.upsert(sale)
 }
 
 export function useOrdersStore() {
-  return useSyncExternalStore(subscribeOrders, getOrdersState, getOrdersState)
+  const { items, isLoading, error, reload } = orders.useCollection()
+
+  return { orders: items, isLoading, error, reload }
 }

@@ -3,21 +3,27 @@ import { Link } from 'react-router-dom'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
+import { approveSale } from '@/features/sales/api/approve-sale'
+import { fetchSale } from '@/features/sales/api/fetch-sale'
 import { buildSalesDekont, openSalesDekontPdf } from '@/features/sales/api/sales-dekont'
 import { InvoiceReceipt } from '@/features/sales/components/InvoiceReceipt'
 import { OrderForm } from '@/features/sales/components/OrderForm'
 import { OrderTable } from '@/features/sales/components/OrderTable'
 import { useOrders } from '@/features/sales/api/use-orders'
+import { useDocumentDetail } from '@/hooks/use-document-detail'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
+import { showToast } from '@/store/toast-store'
 
 export function SalesPage() {
-  const { orders, openOrders, closedOrders } = useOrders()
+  const { orders, draftOrders, approvedOrders, isLoading, error, reload } = useOrders()
   const [selectedId, setSelectedId] = useState('')
   const [preview, setPreview] = useState(false)
+  const [approvingId, setApprovingId] = useState('')
   const selectedOrder = orders.find((order) => order.id === selectedId) ?? orders[0]
-  const dekont = selectedOrder ? buildSalesDekont(selectedOrder) : null
+  const detail = useDocumentDetail(fetchSale, selectedOrder?.id, selectedOrder?.status)
+  const dekont = detail.document ? buildSalesDekont(detail.document) : null
   useDocumentTitle('Satış')
 
   function viewOrder(orderId) {
@@ -26,18 +32,32 @@ export function SalesPage() {
   }
 
   function viewPdf() {
-    if (!selectedOrder) {
+    if (!detail.document) {
       return
     }
 
-    void openSalesDekontPdf(selectedOrder)
+    void openSalesDekontPdf(detail.document)
     setPreview(true)
+  }
+
+  async function handleApprove(order) {
+    setApprovingId(order.id)
+    const result = await approveSale(order.id)
+    setApprovingId('')
+
+    if (!result.ok) {
+      showToast(result.error, 'error')
+      return
+    }
+
+    setSelectedId(order.id)
+    showToast(`Satış təsdiqləndi: ${order.number}`)
   }
 
   return (
     <PageContainer
       title="Satış"
-      description="Sifariş girişi və qaimə qaralaması."
+      description="Satış qaimələri: qaralama yazılır, təsdiqləndikdə anbardan silinir."
       action={
         <Link to={routes.pos} className={styles.buttonPrimary}>
           POS kassa
@@ -46,24 +66,36 @@ export function SalesPage() {
     >
       <div className={styles.summaryGrid}>
         <Card>
-          <p className={styles.summaryLabel}>Açıq sifariş</p>
-          <p className={styles.summaryValue}>{openOrders}</p>
+          <p className={styles.summaryLabel}>Qaralama</p>
+          <p className={styles.summaryValue}>{isLoading ? '…' : draftOrders}</p>
         </Card>
         <Card>
-          <p className={styles.summaryLabel}>Bağlı sifariş</p>
-          <p className={styles.summaryValue}>{closedOrders}</p>
+          <p className={styles.summaryLabel}>Təsdiqlənib</p>
+          <p className={styles.summaryValue}>{isLoading ? '…' : approvedOrders}</p>
         </Card>
       </div>
       <div className={styles.salesLayout}>
-        <OrderForm />
+        <OrderForm onCreated={(order) => setSelectedId(order.id)} />
         <InvoiceReceipt
-          order={selectedOrder}
-          onView={() => selectedOrder && viewOrder(selectedOrder.id)}
+          title="Satış dekontu"
+          dekont={dekont}
+          isLoading={detail.isLoading}
+          error={detail.error}
+          emptyText="Dekont üçün əvvəlcə satış yazın."
+          onView={() => setPreview(true)}
           onPrint={() => window.print()}
           onPdf={viewPdf}
         />
       </div>
-      <OrderTable orders={orders} onView={viewOrder} />
+      <OrderTable
+        orders={orders}
+        isLoading={isLoading}
+        error={error}
+        onRetry={reload}
+        onView={viewOrder}
+        onApprove={handleApprove}
+        approvingId={approvingId}
+      />
       {preview ? (
         <DekontPreview
           title="Satış dekontu"

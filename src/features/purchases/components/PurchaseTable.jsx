@@ -1,10 +1,16 @@
 import { Card } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
+import { TableState } from '@/components/ui/table-state'
+import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
+import { formatDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Depo', 'İşçi', 'Say', 'Məbləğ', 'Əməliyyat']
+const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Kontragent', 'VÖEN', 'Depo', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
 
-export function PurchaseTable({ purchases, onView }) {
+export function PurchaseTable({ purchases, isLoading, error, onRetry, onView, onApprove, approvingId }) {
+  const showRows = !isLoading && !error
+
   return (
     <Card padded={false}>
       <table className={styles.table}>
@@ -18,31 +24,47 @@ export function PurchaseTable({ purchases, onView }) {
           </tr>
         </thead>
         <tbody>
-          {purchases.length === 0 ? (
-            <tr>
-              <td className={styles.tableEmpty} colSpan={TABLE_COLUMNS.length}>
-                Hələ alış yoxdur.
-              </td>
-            </tr>
-          ) : (
-            purchases.map((purchase) => (
-              <tr key={purchase.id} className={styles.tableRow}>
-                <td className={styles.tableCell}>{purchase.number}</td>
-                <td className={styles.tableCell}>{purchase.customer}</td>
-                <td className={styles.tableCellMuted}>{purchase.voen}</td>
-                <td className={styles.tableCellMuted}>{purchase.product}</td>
-                <td className={styles.tableCellMuted}>{purchase.warehouse}</td>
-                <td className={styles.tableCellMuted}>{purchase.user}</td>
-                <td className={styles.tableCell}>{purchase.quantity}</td>
-                <td className={styles.tableCell}>{formatAzn(purchase.total)}</td>
-                <td className={styles.tableCell}>
-                  <button type="button" className={styles.headerAction} onClick={() => onView(purchase.id)}>
-                    Bax
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
+          <TableState
+            colSpan={TABLE_COLUMNS.length}
+            isLoading={isLoading}
+            error={error}
+            onRetry={onRetry}
+            isEmpty={purchases.length === 0}
+            emptyText="Hələ alış yoxdur."
+          />
+          {showRows
+            ? purchases.map((purchase) => (
+                <tr key={purchase.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>{purchase.number}</td>
+                  <td className={styles.tableCellMuted}>{formatDate(purchase.createdAt)}</td>
+                  <td className={styles.tableCell}>{purchase.customer}</td>
+                  <td className={styles.tableCellMuted}>{purchase.voen}</td>
+                  <td className={styles.tableCellMuted}>{purchase.warehouse}</td>
+                  <td className={styles.tableCellMuted}>{purchase.itemCount}</td>
+                  <td className={styles.tableCell}>{formatAzn(purchase.total)}</td>
+                  <td className={styles.tableCell}>
+                    <OrderStatusBadge status={purchase.status} />
+                  </td>
+                  <td className={styles.tableCell}>
+                    <div className={styles.rowActions}>
+                      <button type="button" className={styles.headerAction} onClick={() => onView(purchase.id)}>
+                        Bax
+                      </button>
+                      {purchase.status === 'draft' ? (
+                        <button
+                          type="button"
+                          className={styles.textActionStrong}
+                          onClick={() => onApprove(purchase)}
+                          disabled={Boolean(approvingId)}
+                        >
+                          {approvingId === purchase.id ? <Spinner /> : 'Təsdiqlə'}
+                        </button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            : null}
         </tbody>
       </table>
     </Card>

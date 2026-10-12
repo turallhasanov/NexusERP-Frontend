@@ -19,8 +19,8 @@ export function buildDashboardCards(summary, period) {
   const prefix = moneyPrefix(period)
 
   return [
-    { label: 'Açıq toptan', value: String(summary.wholesaleOpen) },
-    { label: 'Açıq pərakəndə', value: String(summary.retailOpen) },
+    { label: 'Qaralama toptan', value: String(summary.wholesaleOpen) },
+    { label: 'Qaralama pərakəndə', value: String(summary.retailOpen) },
     { label: 'Kritik ehtiyat', value: String(summary.criticalStock) },
     { label: 'Məhsul sayı', value: String(summary.productCount) },
     { label: 'Kontragent sayı', value: String(summary.customerCount) },

@@ -8,13 +8,19 @@ export function PosCart({
   error,
   notice,
   storeName,
+  cashRegisters,
+  cashRegistersLoading,
+  cashRegisterId,
+  onCashRegisterChange,
   payment,
   tendered,
   change,
+  submitting,
   hasReceipt,
   onPaymentChange,
   onTenderedChange,
   onChangeQty,
+  onRemoveLine,
   onClear,
   onCheckout,
   onViewReceipt,
@@ -37,6 +43,25 @@ export function PosCart({
         <p className="text-xs tracking-[0.28em] text-emerald-400">QƏBZ</p>
         <p className="mt-2 text-2xl font-semibold">Səbət</p>
         <p className="mt-1 text-sm text-white/50">{storeName ?? 'Mağaza seçilməyib'}</p>
+        <label className="mt-4 flex flex-col gap-1.5">
+          <span className="text-sm text-white/45">Kassa</span>
+          <select
+            className={styles.posSelect}
+            value={cashRegisterId}
+            onChange={(event) => onCashRegisterChange(event.target.value)}
+            disabled={cashRegistersLoading || cashRegisters.length === 0}
+          >
+            {cashRegisters.length === 0 ? (
+              <option value="">{cashRegistersLoading ? 'Yüklənir…' : 'Aktiv kassa yoxdur'}</option>
+            ) : (
+              cashRegisters.map((cashRegister) => (
+                <option key={cashRegister.id} value={cashRegister.id}>
+                  {cashRegister.name} ({cashRegister.code}) · {formatAzn(cashRegister.balance)}
+                </option>
+              ))
+            )}
+          </select>
+        </label>
       </div>
 
       {cart.length === 0 ? (
@@ -49,6 +74,13 @@ export function PosCart({
                 <p className="truncate">{line.name}</p>
                 <p className="mt-1 font-mono text-[11px] tracking-widest text-white/40">{line.barcode}</p>
                 <p className="mt-1 text-white/50">{formatAzn(line.unitPrice)}</p>
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-white/40 hover:text-white"
+                  onClick={() => onRemoveLine(line.productId)}
+                >
+                  Sil
+                </button>
               </div>
               <div className="flex flex-col items-end gap-3">
                 <p className="font-semibold">{formatAzn(line.quantity * line.unitPrice)}</p>
@@ -140,8 +172,13 @@ export function PosCart({
             </div>
           </div>
         ) : null}
-        <button type="button" className={styles.posPayButton} onClick={onCheckout}>
-          Satışı tamamla
+        <button
+          type="button"
+          className={`${styles.posPayButton} disabled:opacity-60`}
+          onClick={onCheckout}
+          disabled={submitting || cart.length === 0}
+        >
+          {submitting ? 'Göndərilir…' : 'Satışı tamamla'}
         </button>
         {hasReceipt ? (
           <div className={styles.posDekontRow}>
