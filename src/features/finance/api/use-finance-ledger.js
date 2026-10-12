@@ -4,15 +4,16 @@ import { payrollForPeriod } from '@/features/hr/api/payroll'
 import { isInPeriod, PERIOD_DAY, PERIOD_MONTH } from '@/lib/date'
 import { useFinanceStore } from '@/store/finance-store'
 import { useHrStore } from '@/store/hr-store'
-import { useOrdersStore } from '@/store/orders-store'
-import { usePurchasesStore } from '@/store/purchases-store'
+import { SALE_APPROVED, useOrdersStore } from '@/store/orders-store'
+import { PURCHASE_APPROVED, usePurchasesStore } from '@/store/purchases-store'
 import { useStoresStore } from '@/store/stores-store'
 import { useWarehousesStore } from '@/store/warehouses-store'
 
 export function useFinanceLedger(period = PERIOD_MONTH) {
-  const { orders } = useOrdersStore()
+  // Only approved documents are income / expense; drafts have not moved stock or money yet.
+  const orders = useOrdersStore().orders.filter((order) => order.status === SALE_APPROVED)
   const { expenses } = useFinanceStore()
-  const { purchases } = usePurchasesStore()
+  const purchases = usePurchasesStore().purchases.filter((purchase) => purchase.status === PURCHASE_APPROVED)
   const { stores } = useStoresStore()
   const { warehouses } = useWarehousesStore()
   const { employees } = useHrStore()

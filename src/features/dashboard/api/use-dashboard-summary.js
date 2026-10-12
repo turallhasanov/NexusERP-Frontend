@@ -4,8 +4,8 @@ import { useCustomersStore } from '@/store/customers-store'
 import { useFinanceStore } from '@/store/finance-store'
 import { useHrStore } from '@/store/hr-store'
 import { useInventoryStore } from '@/store/inventory-store'
-import { useOrdersStore } from '@/store/orders-store'
-import { usePurchasesStore } from '@/store/purchases-store'
+import { SALE_APPROVED, SALE_DRAFT, useOrdersStore } from '@/store/orders-store'
+import { PURCHASE_APPROVED, usePurchasesStore } from '@/store/purchases-store'
 import { useStoresStore } from '@/store/stores-store'
 
 export function useDashboardSummary(period = PERIOD_MONTH) {
@@ -16,13 +16,18 @@ export function useDashboardSummary(period = PERIOD_MONTH) {
   const { employees } = useHrStore()
   const { expenses } = useFinanceStore()
   const { purchases } = usePurchasesStore()
-  const periodOrders = orders.filter((order) => isInPeriod(order.createdAt, period))
-  const periodPurchases = purchases.filter((purchase) => isInPeriod(purchase.createdAt, period))
+  // Only approved documents count as revenue and cost; drafts have not moved stock or money yet.
+  const periodOrders = orders.filter(
+    (order) => order.status === SALE_APPROVED && isInPeriod(order.createdAt, period),
+  )
+  const periodPurchases = purchases.filter(
+    (purchase) => purchase.status === PURCHASE_APPROVED && isInPeriod(purchase.createdAt, period),
+  )
   const periodExpenses = expenses.filter((expense) => isInPeriod(expense.createdAt, period))
   const wholesaleOpen = orders.filter(
-    (order) => order.type === 'wholesale' && order.status === 'open',
+    (order) => order.type === 'wholesale' && order.status === SALE_DRAFT,
   ).length
-  const retailOpen = orders.filter((order) => order.type === 'retail' && order.status === 'open').length
+  const retailOpen = orders.filter((order) => order.type === 'retail' && order.status === SALE_DRAFT).length
   const roster = employees.filter((employee) => employee.status !== 'left')
   const wholesaleRevenue = periodOrders
     .filter((order) => order.type === 'wholesale')

@@ -1,49 +1,18 @@
-import { getAuthState } from '@/store/auth-store'
-import { getCustomer } from '@/store/customers-store'
-import { addPurchase } from '@/store/purchases-store'
-import { getProduct, receiveStock } from '@/store/inventory-store'
-import { getWarehouse } from '@/store/warehouses-store'
+import { toItemsPayload } from '@/lib/document-lines'
+import { apiClient } from '@/services/api-client'
+import { upsertPurchase } from '@/store/purchases-store'
 
-export function placePurchase({ customerId, productId, warehouseId, quantity, unitPrice }) {
-  const { user } = getAuthState()
+// POST /api/purchases → a draft purchase; stock is not touched until it is approved.
+export async function placePurchase({ customerId, warehouseId, lines }) {
+  try {
+    const purchase = await apiClient.post('/purchases', {
+      customerId,
+      warehouseId,
+      items: toItemsPayload(lines),
+    })
 
-  if (!user) {
-    return { ok: false, error: 'İstifadəçi tapılmadı.' }
+    return { ok: true, purchase: upsertPurchase(purchase) }
+  } catch (error) {
+    return { ok: false, error: error.message }
   }
-
-  const customer = getCustomer(customerId)
-
-  if (!customer) {
-    return { ok: false, error: 'Kontragent tapılmadı.' }
-  }
-
-  const product = getProduct(productId)
-
-  if (!product) {
-    return { ok: false, error: 'Məhsul anbarda tapılmadı.' }
-  }
-
-  const warehouse = getWarehouse(warehouseId)
-
-  if (!warehouse) {
-    return { ok: false, error: 'Depo tapılmadı.' }
-  }
-
-  const stock = receiveStock(productId, warehouseId, quantity)
-
-  if (!stock.ok) {
-    return stock
-  }
-
-  addPurchase({
-    customer: customer.name,
-    voen: customer.voen,
-    product: product.name,
-    warehouse: warehouse.name,
-    user: user.name,
-    quantity,
-    unitPrice,
-  })
-
-  return { ok: true }
 }

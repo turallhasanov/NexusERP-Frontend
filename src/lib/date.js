@@ -41,9 +41,26 @@ export function toDateInput(now = new Date()) {
   return `${year}-${month}-${day}`
 }
 
+// The API sends UTC timestamps without a zone suffix ("2026-10-12T09:30:00"); mark them as UTC so the
+// browser shows local time. Date-only values and values that already carry a zone pass through unchanged.
+export function fromApiDate(value) {
+  if (typeof value !== 'string' || !value.includes('T') || /(Z|[+-]\d\d:\d\d)$/.test(value)) {
+    return value
+  }
+
+  return `${value}Z`
+}
+
 export function parseDate(value) {
   if (!value) {
     return null
+  }
+
+  // Full timestamps: take the local calendar day, not the UTC one in the string.
+  if (String(value).includes('T')) {
+    const date = new Date(value)
+
+    return Number.isNaN(date.getTime()) ? null : new Date(date.getFullYear(), date.getMonth(), date.getDate())
   }
 
   const [year, month, day] = String(value).slice(0, 10).split('-').map(Number)

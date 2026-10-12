@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { checkoutPos } from '@/features/pos/api/checkout-pos'
+import { lookupBarcode } from '@/features/pos/api/lookup-barcode'
 import { buildPosDekont, openPosDekontPdf } from '@/features/pos/api/pos-dekont'
-import { usePosCatalog } from '@/features/pos/api/use-pos-catalog'
+import { toPosItem, usePosCatalog } from '@/features/pos/api/use-pos-catalog'
 import { PosCart } from '@/features/pos/components/PosCart'
 import { PosProductGrid } from '@/features/pos/components/PosProductGrid'
 import { PosScanner } from '@/features/pos/components/PosScanner'
@@ -14,12 +15,15 @@ import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatAzn } from '@/lib/money'
 import { cashChange, PAYMENT_CASH } from '@/lib/payment'
 import { styles } from '@/lib/styles'
-import { getProductByBarcode } from '@/store/inventory-store'
+import { useCashRegistersStore } from '@/store/cash-registers-store'
+import { showToast } from '@/store/toast-store'
 
 export function PosPage() {
   const { stores } = useStores()
   const { types } = useProductTypes()
+  const { cashRegisters, isLoading: cashRegistersLoading } = useCashRegistersStore()
   const [storeId, setStoreId] = useState('')
+  const [chosenCashRegisterId, setChosenCashRegisterId] = useState('')
   const [typeId, setTypeId] = useState('')
   const [cart, setCart] = useState([])
   const [query, setQuery] = useState('')
@@ -27,12 +31,18 @@ export function PosPage() {
   const [notice, setNotice] = useState('')
   const [payment, setPayment] = useState(PAYMENT_CASH)
   const [tendered, setTendered] = useState('')
-  const [lastOrders, setLastOrders] = useState([])
+  const [lastReceipt, setLastReceipt] = useState(null)
   const [preview, setPreview] = useState(false)
-  const lastDekont = buildPosDekont(lastOrders)
+  const [submitting, setSubmitting] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const lastDekont = buildPosDekont(lastReceipt)
   const scannerRef = useRef(null)
   const selectedStore = stores.find((store) => store.id === storeId)
-  const catalog = usePosCatalog(selectedStore?.warehouseId)
+  const warehouseId = selectedStore?.warehouseId
+  const { catalog } = usePosCatalog(warehouseId)
+  const activeCashRegisters = cashRegisters.filter((cashRegister) => cashRegister.isActive)
+  // Defaults to the first active register until the cashier picks one.
+  const cashRegisterId = chosenCashRegisterId || activeCashRegisters[0]?.id || ''
   const cartTotal = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
   const change = payment === PAYMENT_CASH ? cashChange(cartTotal, Number(tendered)) : null
   const visibleProducts = useMemo(() => {
@@ -71,7 +81,7 @@ export function PosPage() {
     setError('')
     setNotice('')
     setTendered('')
-    setLastOrders([])
+    setLastReceipt(null)
     setPreview(false)
   }
 
@@ -113,7 +123,7 @@ export function PosPage() {
     return true
   }
 
-  function scanBarcode(raw) {
+  async function scanBarcode(raw) {
     const code = raw.trim()
 
     if (!storeId) {
@@ -122,23 +132,29 @@ export function PosPage() {
       return
     }
 
-    if (!code) {
+    if (!code || scanning) {
       return
     }
 
-    const match = getProductByBarcode(code)
-    const product = catalog.find((item) => item.id === match?.id)
+    setScanning(true)
 
-    if (!product) {
-      setError('Barkod tapılmadı.')
+    try {
+      const match = await lookupBarcode(code)
+
+      if (!match || match.isActive === false) {
+        setError('Barkod tapılmadı.')
+        setNotice('')
+        return
+      }
+
+      if (addProduct(toPosItem(match, warehouseId))) {
+        setQuery('')
+      }
+    } catch (lookupError) {
+      setError(lookupError.message)
       setNotice('')
-      return
-    }
-
-    const added = addProduct(product)
-
-    if (added) {
-      setQuery('')
+    } finally {
+      setScanning(false)
     }
   }
 
@@ -166,37 +182,57 @@ export function PosPage() {
     )
   }
 
+  function removeLine(productId) {
+    setCart((current) => current.filter((line) => line.productId !== productId))
+  }
+
   function changePayment(nextPayment) {
     setPayment(nextPayment)
     setTendered('')
     setError('')
   }
 
-  function checkout() {
-    const result = checkoutPos({ storeId, lines: cart, payment, tendered: Number(tendered) })
+  async function checkout() {
+    if (submitting) {
+      return
+    }
+
+    const cashRegister = cashRegisters.find((item) => item.id === cashRegisterId)
+    const tenderedAmount = Number(tendered)
+
+    setError('')
+    setNotice('')
+    setSubmitting(true)
+
+    const result = await checkoutPos({ storeId, cashRegisterId, lines: cart, payment, tendered: tenderedAmount })
+
+    setSubmitting(false)
 
     if (!result.ok) {
       setError(result.error)
-      setNotice('')
       return
     }
 
     const leftover = result.change
     setCart([])
     setQuery('')
-    setError('')
     setTendered('')
-    setLastOrders(result.orders)
+    setLastReceipt({ sale: result.sale, payment, tendered: tenderedAmount, change: leftover, cashRegister })
     setPreview(true)
-    setNotice(leftover == null ? 'Satış yazıldı.' : `Satış yazıldı. Qalıq ${formatAzn(leftover)}.`)
+    setNotice(
+      leftover == null
+        ? `Satış yazıldı: ${result.sale.documentNumber}.`
+        : `Satış yazıldı: ${result.sale.documentNumber}. Qalıq ${formatAzn(leftover)}.`,
+    )
+    showToast(`Satış tamamlandı: ${result.sale.documentNumber} · ${formatAzn(result.sale.totalAmount)}`)
   }
 
   function viewPdf() {
-    if (!lastOrders.length) {
+    if (!lastReceipt) {
       return
     }
 
-    void openPosDekontPdf(lastOrders)
+    void openPosDekontPdf(lastReceipt)
     setPreview(true)
   }
 
@@ -227,12 +263,18 @@ export function PosPage() {
           error={error}
           notice={notice}
           storeName={selectedStore?.name}
+          cashRegisters={activeCashRegisters}
+          cashRegistersLoading={cashRegistersLoading}
+          cashRegisterId={cashRegisterId}
+          onCashRegisterChange={setChosenCashRegisterId}
           payment={payment}
           tendered={tendered}
           change={change}
+          submitting={submitting}
           onPaymentChange={changePayment}
           onTenderedChange={setTendered}
           onChangeQty={changeQty}
+          onRemoveLine={removeLine}
           onClear={() => {
             setCart([])
             setError('')

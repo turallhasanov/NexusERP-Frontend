@@ -1,16 +1,11 @@
 import { Badge } from '@/components/ui/badge'
+import { DOCUMENT_STATUS_LABELS } from '@/features/sales/api/sales-dekont'
 
-const STATUS_LABELS = {
-  open: 'Açıq',
-  closed: 'Bağlı',
-}
-
+// Status tag for sale and purchase documents: draft (stock untouched) or approved.
 export function OrderStatusBadge({ status }) {
-  const isOpen = status === 'open'
-
   return (
-    <Badge variant={isOpen ? 'warning' : 'muted'}>
-      {STATUS_LABELS[status] ?? status}
+    <Badge variant={status === 'approved' ? 'success' : 'warning'}>
+      {DOCUMENT_STATUS_LABELS[status] ?? status}
     </Badge>
   )
 }

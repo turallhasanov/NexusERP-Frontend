@@ -96,6 +96,22 @@ export function createApiCollection({ path, fetchItems, fromApi = (item) => item
     return item
   }
 
+  // For documents, which the server lists newest first: replaces the row with the same id, or puts a new
+  // one at the top.
+  function upsert(row) {
+    const item = fromApi(row)
+    const exists = state.items.some((current) => current.id === item.id)
+
+    setState({
+      ...state,
+      items: exists
+        ? state.items.map((current) => (current.id === item.id ? item : current))
+        : [item, ...state.items],
+    })
+
+    return item
+  }
+
   function update(id, change) {
     setState({
       ...state,
@@ -132,5 +148,5 @@ export function createApiCollection({ path, fetchItems, fromApi = (item) => item
     }
   })
 
-  return { getState, load, ensureLoaded, reset, add, update, find, useCollection }
+  return { getState, load, ensureLoaded, reset, add, upsert, update, find, useCollection }
 }
