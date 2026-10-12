@@ -1,7 +1,7 @@
 import { useProductTypesStore } from '@/store/product-types-store'
 
 export function useProductTypes() {
-  const { types } = useProductTypesStore()
+  const { types, isLoading, error, reload } = useProductTypesStore()
 
-  return { types }
+  return { types, isLoading, error, reload }
 }

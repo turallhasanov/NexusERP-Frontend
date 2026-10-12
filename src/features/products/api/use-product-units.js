@@ -1,7 +1,7 @@
 import { useProductUnitsStore } from '@/store/product-units-store'
 
 export function useProductUnits() {
-  const { units } = useProductUnitsStore()
+  const { units, isLoading, error, reload } = useProductUnitsStore()
 
-  return { units }
+  return { units, isLoading, error, reload }
 }

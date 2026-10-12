@@ -1,10 +1,7 @@
 import { useCustomersStore } from '@/store/customers-store'
 
 export function useCustomers() {
-  const { customers } = useCustomersStore()
+  const { customers, isLoading, error, reload } = useCustomersStore()
 
-  return {
-    customers,
-    isLoading: false,
-  }
+  return { customers, isLoading, error, reload }
 }

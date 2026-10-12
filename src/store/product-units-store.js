@@ -1,70 +1,29 @@
-import { useSyncExternalStore } from 'react'
+import { createApiCollection } from '@/store/create-api-collection'
 
-const INITIAL_UNITS = [
-  { id: '1', name: 'ədəd' },
-  { id: '2', name: 'kq' },
-  { id: '3', name: 'litr' },
-]
+// GET /api/units → { id, name, shortName }
+const units = createApiCollection({ path: '/units' })
 
-let nextSequence = INITIAL_UNITS.length + 1
-
-let state = {
-  units: INITIAL_UNITS,
-}
-
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
-  }
-}
-
-export function getProductUnitsState() {
-  return state
-}
-
-export function subscribeProductUnits(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+export const loadProductUnits = units.load
 
 export function getProductUnit(unitId) {
-  return state.units.find((unit) => unit.id === unitId) ?? null
+  return units.find(unitId)
 }
 
 export function formatQuantity(quantity, unitId) {
-  const unit = getProductUnit(unitId)?.name ?? ''
+  const unit = getProductUnit(unitId)
+  const label = unit?.shortName || unit?.name || ''
   const shown = String(quantity)
 
-  return unit ? `${shown} ${unit}` : shown
+  return label ? `${shown} ${label}` : shown
 }
 
-export function addProductUnit({ name }) {
-  const trimmed = name.trim()
-
-  if (!trimmed) {
-    return { ok: false, error: 'Vahid adı tələb olunur.' }
-  }
-
-  if (state.units.some((unit) => unit.name.toLowerCase() === trimmed.toLowerCase())) {
-    return { ok: false, error: 'Bu vahid artıq var.' }
-  }
-
-  const unit = {
-    id: String(nextSequence),
-    name: trimmed,
-  }
-
-  nextSequence += 1
-  state = { units: [unit, ...state.units] }
-  emit()
-
-  return { ok: true }
+// Adds a row returned by POST /api/units.
+export function addProductUnit(unit) {
+  return units.add(unit)
 }
 
 export function useProductUnitsStore() {
-  return useSyncExternalStore(subscribeProductUnits, getProductUnitsState, getProductUnitsState)
+  const { items, isLoading, error, reload } = units.useCollection()
+
+  return { units: items, isLoading, error, reload }
 }

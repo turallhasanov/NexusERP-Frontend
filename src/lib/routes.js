@@ -3,6 +3,7 @@ export const routes = {
   selectCompany: '/select-company',
   dashboard: '/',
   inventory: '/inventory',
+  warehouses: '/warehouses',
   stores: '/stores',
   products: '/products',
   customers: '/customers',

@@ -1,54 +1,21 @@
-import { useSyncExternalStore } from 'react'
+import { createApiCollection } from '@/store/create-api-collection'
 
-const INITIAL_WAREHOUSES = [
-  { id: '1', name: 'Mərkəzi anbar', code: 'DPO-001' },
-  { id: '2', name: 'Gəncə anbarı', code: 'DPO-002' },
-  { id: '3', name: 'Sumqayıt anbarı', code: 'DPO-003' },
-]
+// GET /api/warehouses returns active warehouses only.
+const warehouses = createApiCollection({ path: '/warehouses' })
 
-let nextSequence = INITIAL_WAREHOUSES.length + 1
-
-let state = {
-  warehouses: INITIAL_WAREHOUSES,
-}
-
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
-  }
-}
-
-export function getWarehousesState() {
-  return state
-}
-
-export function subscribeWarehouses(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+export const loadWarehouses = warehouses.load
 
 export function getWarehouse(warehouseId) {
-  return state.warehouses.find((warehouse) => warehouse.id === warehouseId) ?? null
+  return warehouses.find(warehouseId)
 }
 
-export function addWarehouse({ name }) {
-  const warehouse = {
-    id: String(nextSequence),
-    name,
-    code: `DPO-${String(nextSequence).padStart(3, '0')}`,
-  }
-
-  nextSequence += 1
-  state = { warehouses: [warehouse, ...state.warehouses] }
-  emit()
-
-  return { ok: true }
+// Adds a row returned by POST /api/warehouses.
+export function addWarehouse(warehouse) {
+  return warehouses.add(warehouse)
 }
 
 export function useWarehousesStore() {
-  return useSyncExternalStore(subscribeWarehouses, getWarehousesState, getWarehousesState)
+  const { items, isLoading, error, reload } = warehouses.useCollection()
+
+  return { warehouses: items, isLoading, error, reload }
 }

@@ -4,25 +4,28 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { createProduct } from '@/features/products/api/create-product'
+import { generateBarcode } from '@/features/products/api/generate-barcode'
 import { useProductTypes } from '@/features/products/api/use-product-types'
 import { useProductUnits } from '@/features/products/api/use-product-units'
 import { styles } from '@/lib/styles'
+import { showToast } from '@/store/toast-store'
 
 const EMPTY_FORM = {
   name: '',
   barcode: '',
-  typeId: '',
+  categoryId: '',
   unitId: '',
-  unitPrice: '',
-  quantity: 1,
-  minQuantity: 1,
+  purchasePrice: '',
+  salePrice: '',
 }
 
-export function ProductForm() {
-  const { types } = useProductTypes()
-  const { units } = useProductUnits()
+export function ProductForm({ onCreated }) {
+  const { types, isLoading: typesLoading } = useProductTypes()
+  const { units, isLoading: unitsLoading } = useProductUnits()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   function updateField(field) {
     return (event) => {
@@ -33,53 +36,30 @@ export function ProductForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleGenerateBarcode() {
+    setError('')
+    setGenerating(true)
+
+    const result = await generateBarcode()
+
+    setGenerating(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    setForm((current) => ({ ...current, barcode: result.barcode }))
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    const name = form.name.trim()
-    const barcode = form.barcode.trim()
-    const typeId = form.typeId
-    const unitId = form.unitId
-    const unitPrice = Number(form.unitPrice)
-    const quantity = Number(form.quantity)
-    const minQuantity = Number(form.minQuantity)
+    const result = await createProduct(form)
 
-    if (!name) {
-      setError('Məhsul adı tələb olunur.')
-      return
-    }
-
-    if (!barcode) {
-      setError('Barkod tələb olunur.')
-      return
-    }
-
-    if (!typeId) {
-      setError('Məhsul tipi tələb olunur.')
-      return
-    }
-
-    if (!unitId) {
-      setError('Ölçü vahidi tələb olunur.')
-      return
-    }
-
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-      setError('Qiymət 0-dan böyük olmalıdır.')
-      return
-    }
-
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      setError('Say 0-dan böyük olmalıdır.')
-      return
-    }
-
-    if (!Number.isFinite(minQuantity) || minQuantity < 0) {
-      setError('Minimum ehtiyat 0 və ya daha çox olmalıdır.')
-      return
-    }
-
-    const result = createProduct({ name, barcode, typeId, unitId, unitPrice, quantity, minQuantity })
+    setSubmitting(false)
 
     if (!result.ok) {
       setError(result.error)
@@ -87,7 +67,8 @@ export function ProductForm() {
     }
 
     setForm(EMPTY_FORM)
-    setError('')
+    showToast(`Məhsul yaradıldı: ${result.product.sku} · ${result.product.name}`)
+    onCreated?.(result.product)
   }
 
   return (
@@ -95,22 +76,30 @@ export function ProductForm() {
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
           <Field label="Ad">
-            <Input
-              value={form.name}
-              onChange={updateField('name')}
-              placeholder="Məhsul adı"
-            />
+            <Input value={form.name} onChange={updateField('name')} placeholder="Məhsul adı" />
           </Field>
-          <Field label="Barkod">
-            <Input
-              value={form.barcode}
-              onChange={updateField('barcode')}
-              placeholder="2000001000000"
-            />
-          </Field>
-          <Field label="Tip">
-            <select className={styles.input} value={form.typeId} onChange={updateField('typeId')}>
-              <option value="">Tipi seçin</option>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Barkod</span>
+            <div className={styles.inlineField}>
+              <Input
+                className="flex-1"
+                value={form.barcode}
+                onChange={updateField('barcode')}
+                placeholder="Boş qalsa, avtomatik yaradılır"
+              />
+              <button
+                type="button"
+                className={styles.buttonSecondary}
+                onClick={handleGenerateBarcode}
+                disabled={generating}
+              >
+                {generating ? 'Yaradılır…' : 'EAN-13 yarat'}
+              </button>
+            </div>
+          </label>
+          <Field label="Kateqoriya">
+            <select className={styles.input} value={form.categoryId} onChange={updateField('categoryId')}>
+              <option value="">{typesLoading ? 'Yüklənir…' : 'Kateqoriya seçin'}</option>
               {types.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
@@ -120,7 +109,7 @@ export function ProductForm() {
           </Field>
           <Field label="Vahid">
             <select className={styles.input} value={form.unitId} onChange={updateField('unitId')}>
-              <option value="">Vahidi seçin</option>
+              <option value="">{unitsLoading ? 'Yüklənir…' : 'Vahidi seçin'}</option>
               {units.map((unit) => (
                 <option key={unit.id} value={unit.id}>
                   {unit.name}
@@ -128,36 +117,32 @@ export function ProductForm() {
               ))}
             </select>
           </Field>
-          <Field label="Qiymət (₼)">
+          <Field label="Alış qiyməti (₼)">
             <Input
               type="number"
               min={0}
               step="0.01"
-              value={form.unitPrice}
-              onChange={updateField('unitPrice')}
+              value={form.purchasePrice}
+              onChange={updateField('purchasePrice')}
               placeholder="0.00"
             />
           </Field>
-          <Field label="Say">
+          <Field label="Satış qiyməti (₼)">
             <Input
               type="number"
               min={0}
               step="0.01"
-              value={form.quantity}
-              onChange={updateField('quantity')}
-            />
-          </Field>
-          <Field label="Minimum">
-            <Input
-              type="number"
-              min={0}
-              value={form.minQuantity}
-              onChange={updateField('minQuantity')}
+              value={form.salePrice}
+              onChange={updateField('salePrice')}
+              placeholder="0.00"
             />
           </Field>
         </div>
-        {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">Məhsulu yadda saxla</Button>
+        <p className={styles.fieldHint}>Məhsul kodu (MHS-001, …) avtomatik verilir.</p>
+        {error ? <p className={styles.formError}>{error}</p> : null}
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Yadda saxlanılır…' : 'Məhsulu yadda saxla'}
+        </Button>
       </form>
     </Card>
   )

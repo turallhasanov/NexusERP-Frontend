@@ -7,7 +7,7 @@ import { useDocumentTitle } from '@/hooks/use-document-title'
 import { styles } from '@/lib/styles'
 
 export function StoresPage() {
-  const { stores } = useStores()
+  const { stores, isLoading, error, reload } = useStores()
   useDocumentTitle('Mağaza')
 
   return (
@@ -15,11 +15,11 @@ export function StoresPage() {
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Mağaza sayı</p>
-          <p className={styles.summaryValue}>{stores.length}</p>
+          <p className={styles.summaryValue}>{isLoading ? '…' : stores.length}</p>
         </Card>
       </div>
       <StoreForm />
-      <StoreTable stores={stores} />
+      <StoreTable stores={stores} isLoading={isLoading} error={error} onRetry={reload} />
     </PageContainer>
   )
 }
