@@ -4,6 +4,10 @@ import { AuthShell } from '@/components/layout/AuthShell'
 import { RequireAuth } from '@/components/layout/RequireAuth'
 import { RequireCompany } from '@/components/layout/RequireCompany'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { RegisterPage } from '@/features/auth/pages/RegisterPage'
+import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage'
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { SelectCompanyPage } from '@/features/company/pages/SelectCompanyPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { FinancePage } from '@/features/finance/pages/FinancePage'
@@ -17,6 +21,7 @@ import { PurchasesPage } from '@/features/purchases/pages/PurchasesPage'
 import { SalesPage } from '@/features/sales/pages/SalesPage'
 import { PosPage } from '@/features/pos/pages/PosPage'
 import { ReportsPage } from '@/features/reports/pages/ReportsPage'
+import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 import { routes } from '@/lib/routes'
 
 export default function App() {
@@ -24,6 +29,10 @@ export default function App() {
     <Routes>
       <Route element={<AuthShell />}>
         <Route path={routes.login} element={<LoginPage />} />
+        <Route path={routes.register} element={<RegisterPage />} />
+        <Route path={routes.verifyEmail} element={<VerifyEmailPage />} />
+        <Route path={routes.forgotPassword} element={<ForgotPasswordPage />} />
+        <Route path={routes.resetPassword} element={<ResetPasswordPage />} />
       </Route>
 
       <Route element={<RequireAuth />}>
@@ -44,6 +53,7 @@ export default function App() {
             <Route path={routes.hr} element={<HrPage />} />
             <Route path={routes.finance} element={<FinancePage />} />
             <Route path={routes.reports} element={<ReportsPage />} />
+            <Route path={routes.settings} element={<SettingsPage />} />
           </Route>
         </Route>
       </Route>

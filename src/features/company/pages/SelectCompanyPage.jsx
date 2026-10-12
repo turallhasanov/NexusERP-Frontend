@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { signOut } from '@/features/auth/api/sign-out'
 import { fetchCompany } from '@/features/company/api/fetch-company'
-import { CompanyForm } from '@/features/company/components/CompanyForm'
+import { CompanyOnboarding } from '@/features/company/components/CompanyOnboarding'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { readTokenClaims } from '@/lib/jwt'
 import { routes } from '@/lib/routes'
@@ -15,7 +15,7 @@ import { setCompany } from '@/store/company-store'
 
 const PAGE_COPY = {
   loading: { title: 'Şirkət', description: 'Şirkət məlumatları yüklənir…' },
-  create: { title: 'Şirkət yarat', description: 'Modulları açmaq üçün şirkətinizi qeyd edin.' },
+  create: { title: 'Şirkət', description: 'Yeni şirkət yaradın və ya dəvət kodu ilə mövcud şirkətə qoşulun.' },
   stale: {
     title: 'Yenidən daxil olun',
     description: 'Şirkətiniz bu sessiyadan sonra yaradılıb. Davam etmək üçün yenidən daxil olun.',
@@ -24,7 +24,8 @@ const PAGE_COPY = {
 }
 
 // The backend gives each user at most one company (GET /api/company), so there is nothing to choose
-// between: an existing company is selected automatically, otherwise the user creates one here.
+// between: an existing company is selected automatically, otherwise the user creates one or joins one
+// with an invite code here.
 export function SelectCompanyPage() {
   const navigate = useNavigate()
   const { activeCompanyId } = useAuthStore()
@@ -98,7 +99,7 @@ export function SelectCompanyPage() {
             <h1 className={styles.pageTitle}>{copy.title}</h1>
             <p className={styles.pageDescription}>{status.error ?? copy.description}</p>
           </header>
-          {status.step === 'create' ? <CompanyForm /> : null}
+          {status.step === 'create' ? <CompanyOnboarding /> : null}
           {status.step === 'error' ? <Button onClick={handleRetry}>Yenidən cəhd et</Button> : null}
           {status.step === 'stale' ? <Button onClick={handleLogout}>Yenidən daxil ol</Button> : null}
           {status.step === 'stale' ? null : (

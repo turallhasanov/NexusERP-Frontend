@@ -5,9 +5,12 @@ import { useCompany } from '@/features/company/api/use-company'
 import { cn } from '@/lib/cn'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
+import { useAuthStore } from '@/store/auth-store'
 
 export function Sidebar() {
   const { company } = useCompany()
+  const { user } = useAuthStore()
+  const items = navItems.filter((item) => !item.adminOnly || user?.role === 'admin')
 
   return (
     <aside className={styles.sidebar}>
@@ -15,7 +18,7 @@ export function Sidebar() {
         <BrandLockup companyName={company?.name} />
       </div>
       <nav className={styles.nav}>
-        {navItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
