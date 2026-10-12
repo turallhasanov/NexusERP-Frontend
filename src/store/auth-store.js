@@ -81,6 +81,16 @@ export function setToken(token) {
   setState({ ...state, token })
 }
 
+// After creating or joining a company: the new token (with the companyId claim), the user's role in that
+// company ("admin" when created, "staff" when joined) and the active company change together.
+export function enterCompany({ token, companyId, role }) {
+  setState({
+    token,
+    user: state.user ? { ...state.user, role, companyId } : state.user,
+    activeCompanyId: companyId,
+  })
+}
+
 export function setActiveCompany(companyId) {
   setState({ ...state, activeCompanyId: companyId })
 }
