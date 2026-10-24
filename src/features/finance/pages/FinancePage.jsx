@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
@@ -22,6 +22,7 @@ import { StoreMizanTable } from '@/features/finance/components/StoreMizanTable'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { PERIOD_MONTH, periodCardLabels } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
+import { printAfterRender } from '@/lib/print'
 import { styles } from '@/lib/styles'
 
 export function FinancePage() {
@@ -38,18 +39,8 @@ export function FinancePage() {
   }
   const [kind, setKind] = useState('balance')
   const [preview, setPreview] = useState(false)
-  const [shouldPrint, setShouldPrint] = useState(false)
   const dekont = reports[kind]
   useDocumentTitle('Maliyyə')
-
-  useEffect(() => {
-    if (!shouldPrint) {
-      return
-    }
-
-    window.print()
-    setShouldPrint(false)
-  }, [shouldPrint, kind])
 
   function viewReport(next) {
     setKind(next)
@@ -57,9 +48,10 @@ export function FinancePage() {
   }
 
   function printReport(next) {
-    setKind(next)
-    setPreview(true)
-    setShouldPrint(true)
+    printAfterRender(() => {
+      setKind(next)
+      setPreview(true)
+    })
   }
 
   function pdfReport(next) {

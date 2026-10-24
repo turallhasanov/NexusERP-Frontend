@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -15,6 +15,7 @@ import { useDashboardSummary, useOperationsSummary } from '@/features/dashboard/
 import { FinanceReportActions } from '@/features/finance/components/FinanceReportActions'
 import { PeriodFilter } from '@/features/finance/components/PeriodFilter'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { printAfterRender } from '@/lib/print'
 import { RANGE_MONTH, RANGE_PRESETS } from '@/lib/report-range'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
@@ -22,22 +23,12 @@ import { styles } from '@/lib/styles'
 export function DashboardPage() {
   const [rangeId, setRangeId] = useState(RANGE_MONTH)
   const [preview, setPreview] = useState(false)
-  const [shouldPrint, setShouldPrint] = useState(false)
   const summary = useDashboardSummary(rangeId)
   const operations = useOperationsSummary()
   const kpiCards = buildKpiCards(summary.data)
   const operationsCards = buildOperationsCards(operations)
   const dekont = buildDashboardDekont([...kpiCards, ...operationsCards], rangeId)
   useDocumentTitle('İdarə paneli')
-
-  useEffect(() => {
-    if (!shouldPrint) {
-      return
-    }
-
-    window.print()
-    setShouldPrint(false)
-  }, [shouldPrint])
 
   function viewPdf() {
     void openDashboardDekontPdf([...kpiCards, ...operationsCards], rangeId)
@@ -61,10 +52,7 @@ export function DashboardPage() {
             </Link>
             <FinanceReportActions
               onView={() => setPreview(true)}
-              onPrint={() => {
-                setPreview(true)
-                setShouldPrint(true)
-              }}
+              onPrint={() => printAfterRender(() => setPreview(true))}
               onPdf={viewPdf}
             />
           </div>

@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+/* Dark glass styles for shared controls (inputs, buttons, cards…) inside a data-surface="glass" container:
+   the sign-in pages and the admin portal. Elsewhere those controls keep their light look. */
+@custom-variant glass (&:where([data-surface="glass"], [data-surface="glass"] *));

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
@@ -10,25 +10,16 @@ import { ReceiveStockForm } from '@/features/inventory/components/ReceiveStockFo
 import { FinanceReportActions } from '@/features/finance/components/FinanceReportActions'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { formatAzn } from '@/lib/money'
+import { printAfterRender } from '@/lib/print'
 import { styles } from '@/lib/styles'
 
 export function InventoryPage() {
   const { products, criticalStock, isLoading, error, reload } = useProducts()
   const { warehouses } = useWarehouses()
   const [preview, setPreview] = useState(false)
-  const [shouldPrint, setShouldPrint] = useState(false)
   const stockValue = inventoryStockValue(products)
   const dekont = buildInventoryDekont(products, warehouses)
   useDocumentTitle('Anbar')
-
-  useEffect(() => {
-    if (!shouldPrint) {
-      return
-    }
-
-    window.print()
-    setShouldPrint(false)
-  }, [shouldPrint])
 
   function viewPdf() {
     void openInventoryDekontPdf(products, warehouses)
@@ -42,10 +33,7 @@ export function InventoryPage() {
           <h2 className={styles.sectionTitle}>Anbar hesabatı</h2>
           <FinanceReportActions
             onView={() => setPreview(true)}
-            onPrint={() => {
-              setPreview(true)
-              setShouldPrint(true)
-            }}
+            onPrint={() => printAfterRender(() => setPreview(true))}
             onPdf={viewPdf}
           />
         </div>

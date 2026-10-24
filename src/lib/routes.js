@@ -1,4 +1,5 @@
 export const routes = {
+  welcome: '/welcome',
   login: '/login',
   register: '/register',
   verifyEmail: '/verify-email',
@@ -18,4 +19,9 @@ export const routes = {
   finance: '/finance',
   reports: '/reports',
   settings: '/settings',
+  // Platform administration (role "superadmin" only).
+  admin: '/admin',
+  adminTenants: '/admin/tenants',
+  adminAnalytics: '/admin/analytics',
+  adminSettings: '/admin/settings',
 }

@@ -5,8 +5,10 @@ import { ButtonLink } from '@/components/ui/button-link'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { signIn } from '@/features/auth/api/sign-in'
+import { homeRoute } from '@/lib/home-route'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
+import { getAuthState } from '@/store/auth-store'
 
 // `initialEmail` / `notice` come from the password reset page ("Şifrəniz yeniləndi…").
 export function LoginForm({ initialEmail = '', notice = '' }) {
@@ -38,8 +40,9 @@ export function LoginForm({ initialEmail = '', notice = '' }) {
       return
     }
 
-    // The company page picks the user's company (or offers to create one) and then opens the dashboard.
-    navigate(routes.selectCompany, { replace: true })
+    // Platform admins open the admin panel. Everyone else goes to the company page, which picks the
+    // user's company (or offers to create one) and then opens the dashboard.
+    navigate(homeRoute(getAuthState()), { replace: true })
   }
 
   return (
