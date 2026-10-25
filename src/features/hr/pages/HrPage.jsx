@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { DekontPreview, DekontPrintRoot } from '@/components/dekont/DekontPreview'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Card } from '@/components/ui/card'
@@ -12,26 +12,17 @@ import { PeriodFilter } from '@/features/finance/components/PeriodFilter'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { PERIOD_MONTH, periodCardLabels } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
+import { printAfterRender } from '@/lib/print'
 import { styles } from '@/lib/styles'
 
 export function HrPage() {
   const { employees, headcount, onLeave } = useEmployees()
   const [period, setPeriod] = useState(PERIOD_MONTH)
   const [preview, setPreview] = useState(false)
-  const [shouldPrint, setShouldPrint] = useState(false)
   const payroll = payrollForPeriod(employees, period)
   const labels = periodCardLabels(period)
   const dekont = buildPayrollDekont(employees, period)
   useDocumentTitle('İnsan resursları')
-
-  useEffect(() => {
-    if (!shouldPrint) {
-      return
-    }
-
-    window.print()
-    setShouldPrint(false)
-  }, [shouldPrint])
 
   function viewPdf() {
     void openPayrollDekontPdf(employees, period)
@@ -49,10 +40,7 @@ export function HrPage() {
           <h2 className={styles.sectionTitle}>Maaş hesabatı</h2>
           <FinanceReportActions
             onView={() => setPreview(true)}
-            onPrint={() => {
-              setPreview(true)
-              setShouldPrint(true)
-            }}
+            onPrint={() => printAfterRender(() => setPreview(true))}
             onPdf={viewPdf}
           />
         </div>

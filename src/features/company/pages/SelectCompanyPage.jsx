@@ -12,6 +12,7 @@ import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
 import { getAuthState, setActiveCompany, useAuthStore } from '@/store/auth-store'
 import { setCompany } from '@/store/company-store'
+import { isSuperAdmin } from '@/types/auth'
 
 const PAGE_COPY = {
   loading: { title: 'Şirkət', description: 'Şirkət məlumatları yüklənir…' },
@@ -28,13 +29,14 @@ const PAGE_COPY = {
 // with an invite code here.
 export function SelectCompanyPage() {
   const navigate = useNavigate()
-  const { activeCompanyId } = useAuthStore()
+  const { activeCompanyId, user } = useAuthStore()
+  const platformAdmin = isSuperAdmin(user)
   const [status, setStatus] = useState({ step: 'loading' })
   const [attempt, setAttempt] = useState(0)
   useDocumentTitle('Şirkət')
 
   useEffect(() => {
-    if (activeCompanyId) {
+    if (activeCompanyId || platformAdmin) {
       return undefined
     }
 
@@ -70,10 +72,15 @@ export function SelectCompanyPage() {
     return () => {
       cancelled = true
     }
-  }, [activeCompanyId, attempt])
+  }, [activeCompanyId, platformAdmin, attempt])
 
   if (activeCompanyId) {
     return <Navigate to={routes.dashboard} replace />
+  }
+
+  // Platform admins belong to no company; they work from the admin panel.
+  if (platformAdmin) {
+    return <Navigate to={routes.admin} replace />
   }
 
   function handleLogout() {
