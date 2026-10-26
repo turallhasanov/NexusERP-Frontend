@@ -37,6 +37,7 @@ export function ProductUnitForm() {
 
     if (!result.ok) {
       setError(result.error)
+      showToast(result.error, 'error')
       return
     }
 

@@ -117,15 +117,18 @@ export function ProductForm({ onCreated }) {
               ))}
             </select>
           </Field>
-          <Field label="Alış qiyməti (₼)">
+          <Field label="Alış qiyməti (₼, istəyə bağlı)">
             <Input
               type="number"
               min={0}
               step="0.01"
               value={form.purchasePrice}
               onChange={updateField('purchasePrice')}
-              placeholder="0.00"
+              placeholder="Boş qala bilər"
             />
+            <span className={styles.fieldHint}>
+              Alış qiyməti alış sənədi (qaimə) əlavə edildikdə avtomatik yenilənəcəkdir.
+            </span>
           </Field>
           <Field label="Satış qiyməti (₼)">
             <Input

@@ -7,18 +7,18 @@ import { getCustomer } from '@/store/customers-store'
 // Full purchase from GET /api/purchases/{id} (or a create / approve response).
 export function buildPurchaseDekont(purchase) {
   return {
-    title: 'Alış dekontu',
+    title: 'Alış qaiməsi',
     number: purchase.documentNumber,
     meta: [
       { label: 'Kontragent', value: purchase.customer.name },
       { label: 'VÖEN', value: getCustomer(purchase.customerId)?.voen || '—' },
-      { label: 'Depo', value: purchase.warehouse.name },
+      { label: 'Anbar', value: purchase.warehouse.name },
       { label: 'Status', value: DOCUMENT_STATUS_LABELS[purchase.status] ?? purchase.status },
       { label: 'Tarix', value: formatDate(fromApiDate(purchase.documentDate)) },
     ],
     lines: documentLines(purchase),
     totals: [{ label: 'Cəm', value: formatAzn(purchase.totalAmount), strong: true }],
-    footer: 'NexusERP alış dekontu',
+    footer: 'NexusERP alış qaiməsi',
   }
 }
 

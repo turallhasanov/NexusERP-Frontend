@@ -13,7 +13,7 @@ import { USER_ROLE_LABELS } from '@/types/auth'
 
 const COUNT_LABELS = [
   ['products', 'Məhsul'],
-  ['warehouses', 'Depo'],
+  ['warehouses', 'Anbar'],
   ['stores', 'Mağaza'],
   ['customers', 'Kontragent'],
   ['sales', 'Satış'],

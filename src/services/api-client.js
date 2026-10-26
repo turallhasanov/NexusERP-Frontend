@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { getAuthState, logout, stopImpersonation } from '@/store/auth-store'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5264/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5264/api'
 
 // Requests where a 401 means "wrong credentials", not "session expired": show the error, keep the page.
 const CREDENTIAL_PATHS = ['/auth/login']

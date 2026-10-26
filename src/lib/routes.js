@@ -19,9 +19,12 @@ export const routes = {
   finance: '/finance',
   reports: '/reports',
   settings: '/settings',
+  roles: '/roles',
+  auditLogs: '/audit-logs',
   // Platform administration (role "superadmin" only).
   admin: '/admin',
   adminTenants: '/admin/tenants',
   adminAnalytics: '/admin/analytics',
   adminSettings: '/admin/settings',
+  adminSupport: '/admin/support',
 }

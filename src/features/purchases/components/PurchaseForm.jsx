@@ -68,9 +68,9 @@ export function PurchaseForm({ onCreated }) {
               ))}
             </select>
           </Field>
-          <Field label="Depo">
+          <Field label="Anbar">
             <select className={styles.input} value={form.warehouseId} onChange={updateField('warehouseId')}>
-              <option value="">Depo seçin</option>
+              <option value="">Anbar seçin</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}

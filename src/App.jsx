@@ -4,6 +4,8 @@ import { AppShell } from '@/components/layout/AppShell'
 import { AuthShell } from '@/components/layout/AuthShell'
 import { RequireAuth } from '@/components/layout/RequireAuth'
 import { RequireCompany } from '@/components/layout/RequireCompany'
+import { RequireCompanyManager } from '@/components/layout/RequireCompanyManager'
+import { RequireItAdmin } from '@/components/layout/RequireItAdmin'
 import { RequireSuperAdmin } from '@/components/layout/RequireSuperAdmin'
 import { AdminShell } from '@/features/admin/components/AdminShell'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -11,6 +13,7 @@ import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+import { NotFoundPage } from '@/features/not-found/pages/NotFoundPage'
 import { SplashPage } from '@/features/splash/pages/SplashPage'
 import { SelectCompanyPage } from '@/features/company/pages/SelectCompanyPage'
 import { routes } from '@/lib/routes'
@@ -22,12 +25,12 @@ function lazyPage(load, name) {
 }
 
 const AdminAnalyticsPage = lazyPage(() => import('@/features/admin/pages/AdminAnalyticsPage'), 'AdminAnalyticsPage')
+const AdminSupportPage = lazyPage(() => import('@/features/admin/pages/AdminSupportPage'), 'AdminSupportPage')
 const AdminSettingsPage = lazyPage(() => import('@/features/admin/pages/AdminSettingsPage'), 'AdminSettingsPage')
 const AdminTenantsPage = lazyPage(() => import('@/features/admin/pages/AdminTenantsPage'), 'AdminTenantsPage')
 const DashboardPage = lazyPage(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage')
 const FinancePage = lazyPage(() => import('@/features/finance/pages/FinancePage'), 'FinancePage')
 const HrPage = lazyPage(() => import('@/features/hr/pages/HrPage'), 'HrPage')
-const InventoryPage = lazyPage(() => import('@/features/inventory/pages/InventoryPage'), 'InventoryPage')
 const WarehousesPage = lazyPage(() => import('@/features/warehouses/pages/WarehousesPage'), 'WarehousesPage')
 const StoresPage = lazyPage(() => import('@/features/stores/pages/StoresPage'), 'StoresPage')
 const CustomersPage = lazyPage(() => import('@/features/customers/pages/CustomersPage'), 'CustomersPage')
@@ -37,6 +40,8 @@ const SalesPage = lazyPage(() => import('@/features/sales/pages/SalesPage'), 'Sa
 const PosPage = lazyPage(() => import('@/features/pos/pages/PosPage'), 'PosPage')
 const ReportsPage = lazyPage(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage')
 const SettingsPage = lazyPage(() => import('@/features/settings/pages/SettingsPage'), 'SettingsPage')
+const AuditLogsPage = lazyPage(() => import('@/features/audit/pages/AuditLogsPage'), 'AuditLogsPage')
+const RolesPage = lazyPage(() => import('@/features/roles/pages/RolesPage'), 'RolesPage')
 
 export default function App() {
   return (
@@ -60,13 +65,15 @@ export default function App() {
             <Route path={routes.admin} element={<Navigate to={routes.adminTenants} replace />} />
             <Route path={routes.adminTenants} element={<AdminTenantsPage />} />
             <Route path={routes.adminAnalytics} element={<AdminAnalyticsPage />} />
+            <Route path={routes.adminSupport} element={<AdminSupportPage />} />
             <Route path={routes.adminSettings} element={<AdminSettingsPage />} />
           </Route>
         </Route>
         <Route element={<RequireCompany />}>
           <Route element={<AppShell />}>
             <Route path={routes.dashboard} element={<DashboardPage />} />
-            <Route path={routes.inventory} element={<InventoryPage />} />
+            {/* The former "Anbar" page is now the "Məhsul qalıqları" tab of Anbar İdarəetməsi. */}
+            <Route path={routes.inventory} element={<Navigate to={routes.warehouses} replace />} />
             <Route path={routes.warehouses} element={<WarehousesPage />} />
             <Route path={routes.stores} element={<StoresPage />} />
             <Route path={routes.products} element={<ProductsPage />} />
@@ -78,13 +85,22 @@ export default function App() {
             <Route path={routes.finance} element={<FinancePage />} />
             <Route path={routes.reports} element={<ReportsPage />} />
             <Route path={routes.settings} element={<SettingsPage />} />
+            <Route element={<RequireCompanyManager />}>
+              <Route path={routes.roles} element={<RolesPage />} />
+            </Route>
+            <Route element={<RequireItAdmin />}>
+              <Route path={routes.auditLogs} element={<AuditLogsPage />} />
+            </Route>
           </Route>
         </Route>
       </Route>
 
       {/* Old company-setup URL, kept so existing bookmarks still land on the right page. */}
       <Route path="/setup" element={<Navigate to={routes.selectCompany} replace />} />
-      <Route path="*" element={<Navigate to={routes.dashboard} replace />} />
+      {/* Every other URL: the 404 page on the sign-in glass surface. */}
+      <Route element={<AuthShell />}>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
   )
 }

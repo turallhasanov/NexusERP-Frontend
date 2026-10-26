@@ -3,12 +3,22 @@ import { Spinner } from '@/components/ui/spinner'
 import { TableState } from '@/components/ui/table-state'
 import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
 import { formatDate } from '@/lib/date'
+import { displayPhone } from '@/lib/phone'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
+import { CHANNEL_ONLINE } from '@/store/orders-store'
 
-const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Növ', 'Kontragent', 'Mağaza', 'Depo', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
+function orderTypeLabel(order) {
+  if (order.channel === CHANNEL_ONLINE) {
+    return 'Online (Khazar)'
+  }
 
-export function OrderTable({ orders, isLoading, error, onRetry, onView, onApprove, approvingId }) {
+  return order.type === 'retail' ? 'Pərakəndə' : 'Toptan'
+}
+
+const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Növ', 'Müştəri / Kontragent', 'Mağaza', 'Anbar', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
+
+export function OrderTable({ orders, isLoading, error, onRetry, onView, onApprove, approvingId, emptyText = 'Hələ satış yoxdur.' }) {
   const showRows = !isLoading && !error
 
   return (
@@ -30,15 +40,25 @@ export function OrderTable({ orders, isLoading, error, onRetry, onView, onApprov
             error={error}
             onRetry={onRetry}
             isEmpty={orders.length === 0}
-            emptyText="Hələ satış yoxdur."
+            emptyText={emptyText}
           />
           {showRows
             ? orders.map((order) => (
                 <tr key={order.id} className={styles.tableRow}>
-                  <td className={styles.tableCell}>{order.number}</td>
+                  <td className={styles.tableCell}>
+                    {order.number}
+                    {order.externalOrderNumber ? (
+                      <span className={styles.cellSubtext}>{order.externalOrderNumber}</span>
+                    ) : null}
+                  </td>
                   <td className={styles.tableCellMuted}>{formatDate(order.createdAt)}</td>
-                  <td className={styles.tableCell}>{order.type === 'retail' ? 'Pərakəndə' : 'Toptan'}</td>
-                  <td className={styles.tableCell}>{order.customer}</td>
+                  <td className={styles.tableCell}>{orderTypeLabel(order)}</td>
+                  <td className={styles.tableCell}>
+                    {order.customer}
+                    {order.retailCustomer?.phone ? (
+                      <span className={styles.cellSubtext}>{displayPhone(order.retailCustomer.phone)}</span>
+                    ) : null}
+                  </td>
                   <td className={styles.tableCellMuted}>{order.store}</td>
                   <td className={styles.tableCellMuted}>{order.warehouse}</td>
                   <td className={styles.tableCellMuted}>{order.itemCount}</td>
