@@ -38,7 +38,7 @@ export function ReceiveStockForm() {
     const quantity = Number(form.quantity)
 
     if (!productId || !warehouseId) {
-      setError('Məhsul və depo tələb olunur.')
+      setError('Məhsul və anbar tələb olunur.')
       return
     }
 
@@ -76,13 +76,13 @@ export function ReceiveStockForm() {
               ))}
             </select>
           </Field>
-          <Field label="Depo">
+          <Field label="Anbar">
             <select
               className={styles.input}
               value={form.warehouseId}
               onChange={updateField('warehouseId')}
             >
-              <option value="">Depo seçin</option>
+              <option value="">Anbar seçin</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}

@@ -25,7 +25,7 @@ export function buildPosDekont(receipt) {
     number: sale.documentNumber,
     meta: [
       { label: 'Mağaza', value: sale.store.name },
-      { label: 'Depo', value: sale.warehouse.name },
+      { label: 'Anbar', value: sale.warehouse.name },
       { label: 'Kassa', value: cashRegister ? `${cashRegister.name} (${cashRegister.code})` : '—' },
       { label: 'Ödəniş', value: paymentLabel(payment) },
       { label: 'Tarix', value: formatDate(fromApiDate(sale.documentDate)) },

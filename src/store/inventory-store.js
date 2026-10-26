@@ -77,6 +77,11 @@ export function addProduct(product) {
   return inventory.add(product)
 }
 
+// After DELETE /api/products/{id}: the product leaves the catalog whether it was removed or deactivated.
+export function removeProduct(productId) {
+  inventory.remove(productId)
+}
+
 // deductStock and receiveStock change the cached stock only. Purchases, sales and POS still run in the
 // browser; they move to the API (and server-side stock) in their own commits.
 export function deductStock(productId, warehouseId, quantity) {
@@ -87,13 +92,13 @@ export function deductStock(productId, warehouseId, quantity) {
   }
 
   if (!getWarehouse(warehouseId)) {
-    return { ok: false, error: 'Depo tapılmadı.' }
+    return { ok: false, error: 'Anbar tapılmadı.' }
   }
 
   const available = product.stocks[warehouseId] ?? 0
 
   if (available < quantity) {
-    return { ok: false, error: `Bu depoda yalnız ${formatQuantity(available, product.unitId)} var.` }
+    return { ok: false, error: `Bu anbarda yalnız ${formatQuantity(available, product.unitId)} var.` }
   }
 
   inventory.update(productId, (item) => ({
@@ -111,7 +116,7 @@ export function receiveStock(productId, warehouseId, quantity) {
   }
 
   if (!getWarehouse(warehouseId)) {
-    return { ok: false, error: 'Depo tapılmadı.' }
+    return { ok: false, error: 'Anbar tapılmadı.' }
   }
 
   inventory.update(productId, (item) => ({

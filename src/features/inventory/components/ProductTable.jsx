@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 import { TableState } from '@/components/ui/table-state'
 import { StockAlertBadge } from '@/features/inventory/components/StockAlertBadge'
 import { formatAzn } from '@/lib/money'
@@ -16,8 +17,12 @@ export function ProductTable({
   error = '',
   onRetry,
   emptyText = 'Hələ məhsul yoxdur.',
+  // Given only where the user may delete (company admins and IT admins): adds an "Əməliyyat" column.
+  onDelete,
+  deletingId = null,
 }) {
-  const columnCount = LEADING_COLUMNS.length + warehouses.length + TRAILING_COLUMNS.length
+  const trailingColumns = onDelete ? [...TRAILING_COLUMNS, 'Əməliyyat'] : TRAILING_COLUMNS
+  const columnCount = LEADING_COLUMNS.length + warehouses.length + trailingColumns.length
   const showRows = !isLoading && !error
 
   return (
@@ -35,7 +40,7 @@ export function ProductTable({
                 {warehouse.name}
               </th>
             ))}
-            {TRAILING_COLUMNS.map((column) => (
+            {trailingColumns.map((column) => (
               <th key={column} className={styles.tableHeadCell}>
                 {column}
               </th>
@@ -70,6 +75,18 @@ export function ProductTable({
                   <td className={styles.tableCell}>
                     <StockAlertBadge quantity={product.quantity} minQuantity={product.minQuantity} />
                   </td>
+                  {onDelete ? (
+                    <td className={styles.tableCell}>
+                      <button
+                        type="button"
+                        className={styles.headerAction}
+                        onClick={() => onDelete(product)}
+                        disabled={Boolean(deletingId)}
+                      >
+                        {deletingId === product.id ? <Spinner /> : 'Sil'}
+                      </button>
+                    </td>
+                  ) : null}
                 </tr>
               ))
             : null}

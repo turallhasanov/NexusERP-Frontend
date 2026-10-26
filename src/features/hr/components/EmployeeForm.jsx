@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { createEmployee } from '@/features/hr/api/create-employee'
+import { createEmployee } from '@/features/hr/api/employees-api'
+import { DEPARTMENTS } from '@/features/hr/lib/hr-options'
 import { toDateInput } from '@/lib/date'
 import { styles } from '@/lib/styles'
-
-const DEPARTMENTS = ['İdarə', 'Anbar', 'Satış', 'Maliyyə']
+import { useStoresStore } from '@/store/stores-store'
+import { showToast } from '@/store/toast-store'
 
 const EMPTY_FORM = {
   name: '',
@@ -15,11 +16,15 @@ const EMPTY_FORM = {
   department: '',
   hiredAt: toDateInput(),
   salary: '',
+  // Optional: the store whose profit the salary counts toward.
+  storeId: '',
 }
 
 export function EmployeeForm() {
   const [form, setForm] = useState(EMPTY_FORM)
+  const { stores } = useStoresStore()
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   function updateField(field) {
     return (event) => {
@@ -30,7 +35,7 @@ export function EmployeeForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const name = form.name.trim()
@@ -49,9 +54,18 @@ export function EmployeeForm() {
       return
     }
 
-    createEmployee({ name, title, department, hiredAt, salary })
-    setForm({ ...EMPTY_FORM, hiredAt: toDateInput() })
     setError('')
+    setSubmitting(true)
+
+    try {
+      const employee = await createEmployee({ name, title, department, hiredAt, salary, storeId: form.storeId })
+      setForm({ ...EMPTY_FORM, hiredAt: toDateInput() })
+      showToast(`İşçi əlavə edildi: ${employee.name}`)
+    } catch (submitError) {
+      setError(submitError.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -89,6 +103,18 @@ export function EmployeeForm() {
           <Field label="İşə qəbul">
             <Input type="date" value={form.hiredAt} onChange={updateField('hiredAt')} />
           </Field>
+          <Field label="Mağaza (istəyə bağlı)">
+            <select className={styles.input} value={form.storeId} onChange={updateField('storeId')}>
+              <option value="">Ümumi (ofis, rəhbərlik)</option>
+              {stores
+                .filter((store) => store.isActive !== false)
+                .map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
           <Field label="Maaş (₼)">
             <Input
               type="number"
@@ -100,8 +126,10 @@ export function EmployeeForm() {
             />
           </Field>
         </div>
-        {error ? <p className={styles.pageDescription}>{error}</p> : null}
-        <Button type="submit">İşçini yadda saxla</Button>
+        {error ? <p className={styles.formError}>{error}</p> : null}
+        <Button type="submit" disabled={submitting}>
+          {submitting ? 'Yadda saxlanılır…' : 'İşçini yadda saxla'}
+        </Button>
       </form>
     </Card>
   )

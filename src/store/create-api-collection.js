@@ -119,6 +119,10 @@ export function createApiCollection({ path, fetchItems, fromApi = (item) => item
     })
   }
 
+  function remove(id) {
+    setState({ ...state, items: state.items.filter((item) => item.id !== id) })
+  }
+
   function find(id) {
     return state.items.find((item) => item.id === id) ?? null
   }
@@ -148,5 +152,5 @@ export function createApiCollection({ path, fetchItems, fromApi = (item) => item
     }
   })
 
-  return { getState, load, ensureLoaded, reset, add, upsert, update, find, useCollection }
+  return { getState, load, ensureLoaded, reset, add, upsert, update, remove, find, useCollection }
 }

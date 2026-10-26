@@ -3,6 +3,8 @@ import { fetchTenants } from '@/features/admin/api/admin-api'
 import { useSwitchToTenant } from '@/features/admin/api/use-switch-to-tenant'
 import { AdminChips, AdminError, AdminKpi, AdminPage } from '@/features/admin/components/AdminUi'
 import { CreateTenantModal } from '@/features/admin/components/CreateTenantModal'
+import { CreateTenantUserModal } from '@/features/admin/components/CreateTenantUserModal'
+import { DeleteTenantModal } from '@/features/admin/components/DeleteTenantModal'
 import { TenantDetailsModal } from '@/features/admin/components/TenantDetailsModal'
 import { TenantStatusControl } from '@/features/admin/components/TenantStatusControl'
 import { TENANT_ACTIVE, TENANT_PASSIVE, TENANT_STATUSES, TENANT_SUSPENDED } from '@/features/admin/lib/tenant-status'
@@ -13,6 +15,20 @@ import { styles } from '@/lib/styles'
 import { showToast } from '@/store/toast-store'
 
 const ALL = 'all'
+
+// 8-character invite codes read more easily in two halves (ABCD-EFGH); joining ignores the dash.
+function formatInviteCode(code) {
+  return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code
+}
+
+async function copyInviteCode(code) {
+  try {
+    await navigator.clipboard.writeText(code)
+    showToast('Dəvət kodu kopyalandı!')
+  } catch {
+    showToast('Kopyalamaq alınmadı. Kodu əl ilə seçib kopyalayın.', 'error')
+  }
+}
 
 function matches(tenant, query) {
   if (!query) {
@@ -29,6 +45,8 @@ export function AdminTenantsPage() {
   const [statusFilter, setStatusFilter] = useState(ALL)
   const [selectedId, setSelectedId] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [addingUserTo, setAddingUserTo] = useState(null)
+  const [deleting, setDeleting] = useState(null)
   const { switchTo, pendingId } = useSwitchToTenant()
   useDocumentTitle('Şirkətlər')
 
@@ -45,6 +63,22 @@ export function AdminTenantsPage() {
     setCreating(false)
     tenants.reload()
     showToast(`«${tenant.name}» yaradıldı. Administrator indi daxil ola bilər.`)
+  }
+
+  function handleUserCreated(user) {
+    const tenantName = addingUserTo.name
+    setAddingUserTo(null)
+    tenants.reload()
+    showToast(`${user.name} «${tenantName}» şirkətinə əlavə edildi. İstifadəçi indi daxil ola bilər.`)
+  }
+
+  function handleDeleted(tenant) {
+    setDeleting(null)
+    if (selectedId === tenant.id) {
+      setSelectedId(null)
+    }
+    tenants.reload()
+    showToast('Şirkət uğurla silindi.')
   }
 
   return (
@@ -96,6 +130,7 @@ export function AdminTenantsPage() {
               <th className={styles.adminTh}>VÖEN</th>
               <th className={styles.adminTh}>Yaradılıb</th>
               <th className={styles.adminTh}>Status</th>
+              <th className={styles.adminTh}>Dəvət kodu</th>
               <th className={`${styles.adminTh} text-right`}>İstifadəçi</th>
               <th className={`${styles.adminTh} text-right`}>Əməliyyatlar</th>
             </tr>
@@ -113,9 +148,23 @@ export function AdminTenantsPage() {
                 <td className={styles.adminTd}>
                   <TenantStatusControl tenant={tenant} onChanged={tenants.reload} />
                 </td>
+                <td className={styles.adminTd}>
+                  <button
+                    type="button"
+                    className={styles.adminButtonSmall}
+                    title="Dəvət kodunu kopyala"
+                    aria-label={`«${tenant.name}» dəvət kodunu kopyala: ${tenant.inviteCode}`}
+                    onClick={() => copyInviteCode(tenant.inviteCode)}
+                  >
+                    <span className={styles.adminMono}>{formatInviteCode(tenant.inviteCode)}</span> ⧉
+                  </button>
+                </td>
                 <td className={styles.adminTdNumber}>{tenant.userCount}</td>
                 <td className={styles.adminTd}>
                   <div className={styles.adminRowActions}>
+                    <button type="button" className={styles.adminButtonSmall} onClick={() => setAddingUserTo(tenant)}>
+                      ➕ İstifadəçi əlavə et
+                    </button>
                     <button type="button" className={styles.adminButtonSmall} onClick={() => setSelectedId(tenant.id)}>
                       Ətraflı
                     </button>
@@ -127,13 +176,16 @@ export function AdminTenantsPage() {
                     >
                       {pendingId === tenant.id ? 'Açılır…' : 'Şirkətə keç →'}
                     </button>
+                    <button type="button" className={styles.adminButtonSmallDanger} onClick={() => setDeleting(tenant)}>
+                      Sil
+                    </button>
                   </div>
                 </td>
               </tr>
             ))}
             {rows.length === 0 && !(tenants.error && !loaded) ? (
               <tr>
-                <td colSpan={6} className={styles.adminTableState}>
+                <td colSpan={7} className={styles.adminTableState}>
                   {!loaded ? 'Yüklənir…' : all.length === 0 ? 'Hələ şirkət yoxdur.' : 'Axtarışa uyğun şirkət tapılmadı.'}
                 </td>
               </tr>
@@ -150,6 +202,16 @@ export function AdminTenantsPage() {
           onSwitch={switchTo}
           switching={pendingId === selectedId}
         />
+      ) : null}
+      {addingUserTo ? (
+        <CreateTenantUserModal
+          tenant={addingUserTo}
+          onClose={() => setAddingUserTo(null)}
+          onCreated={handleUserCreated}
+        />
+      ) : null}
+      {deleting ? (
+        <DeleteTenantModal tenant={deleting} onClose={() => setDeleting(null)} onDeleted={handleDeleted} />
       ) : null}
       {creating ? <CreateTenantModal onClose={() => setCreating(false)} onCreated={handleCreated} /> : null}
     </AdminPage>

@@ -1,105 +1,49 @@
-import { useSyncExternalStore } from 'react'
-import { toDateInput } from '@/lib/date'
+import { createApiCollection } from '@/store/create-api-collection'
 
-const INITIAL_EMPLOYEES = [
-  {
-    id: '1',
-    name: 'Aysel Məmmədova',
-    title: 'Administrator',
-    department: 'İdarə',
-    status: 'active',
-    hiredAt: '2026-01-06',
-    leftAt: null,
-    salary: 1800,
-  },
-  {
-    id: '2',
-    name: 'Elvin Quliyev',
-    title: 'Anbardar',
-    department: 'Anbar',
-    status: 'active',
-    hiredAt: '2026-02-10',
-    leftAt: null,
-    salary: 1200,
-  },
-  {
-    id: '3',
-    name: 'Nigar Əliyeva',
-    title: 'Satıcı',
-    department: 'Satış',
-    status: 'leave',
-    hiredAt: '2026-03-01',
-    leftAt: null,
-    salary: 1100,
-  },
-]
-
-let nextSequence = INITIAL_EMPLOYEES.length + 1
-
-let state = {
-  employees: INITIAL_EMPLOYEES,
+// API status → the one the HR, dashboard and finance modules use (payroll counts everyone but 'left').
+const STATUS_FROM_API = {
+  active: 'active',
+  onLeave: 'leave',
+  terminated: 'left',
 }
 
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
+// GET /api/employees row → the employee shape the modules use. Dates are "YYYY-MM-DD" strings.
+export function toEmployee(employee) {
+  return {
+    id: employee.id,
+    name: employee.fullName,
+    title: employee.title,
+    department: employee.department,
+    status: STATUS_FROM_API[employee.status] ?? 'active',
+    hiredAt: employee.hiredAt,
+    leftAt: employee.terminatedAt ?? null,
+    salary: employee.salary,
+    storeId: employee.storeId ?? null,
+    vacationStartDate: employee.vacationStartDate ?? null,
+    vacationEndDate: employee.vacationEndDate ?? null,
+    leaveType: employee.leaveType ?? null,
+    vacationNote: employee.vacationNote ?? null,
+    terminationReason: employee.terminationReason ?? null,
+    terminationOrderNumber: employee.terminationOrderNumber ?? null,
   }
 }
 
-export function getHrState() {
-  return state
+// The server lists newest first and closes leaves that ended before today on every load.
+const employees = createApiCollection({ path: '/employees', fromApi: toEmployee })
+
+export const loadEmployees = employees.load
+
+// A new employee goes to the top; an updated one (leave, return, termination) replaces its row.
+export function upsertEmployee(employee) {
+  return employees.upsert(employee)
 }
 
-export function subscribeHr(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-export function addEmployee({ name, title, department, hiredAt, salary }) {
-  const employee = {
-    id: String(nextSequence),
-    name,
-    title,
-    department,
-    status: 'active',
-    hiredAt,
-    leftAt: null,
-    salary,
-  }
-
-  nextSequence += 1
-  state = { employees: [employee, ...state.employees] }
-  emit()
-}
-
-export function toggleEmployeeLeave(employeeId) {
-  state = {
-    employees: state.employees.map((employee) => {
-      if (employee.id !== employeeId || employee.status === 'left') {
-        return employee
-      }
-
-      return { ...employee, status: employee.status === 'active' ? 'leave' : 'active' }
-    }),
-  }
-  emit()
-}
-
-export function terminateEmployee(employeeId) {
-  state = {
-    employees: state.employees.map((employee) =>
-      employee.id === employeeId && employee.status !== 'left'
-        ? { ...employee, status: 'left', leftAt: toDateInput() }
-        : employee,
-    ),
-  }
-  emit()
+export function removeEmployee(employeeId) {
+  employees.remove(employeeId)
 }
 
 export function useHrStore() {
-  return useSyncExternalStore(subscribeHr, getHrState, getHrState)
+  const { items, isLoading, error, reload } = employees.useCollection()
+
+  return { employees: items, isLoading, error, reload }
 }

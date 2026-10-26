@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { createTenant } from '@/features/admin/api/admin-api'
 import { AdminModal } from '@/features/admin/components/AdminUi'
 import { styles } from '@/lib/styles'
+import { COMPANY_ROLE_OPTIONS, ROLE_IT_ADMIN, ROLE_STAFF } from '@/types/auth'
 
-const EMPTY_FORM = { name: '', voen: '', adminName: '', adminEmail: '', adminPassword: '' }
+const EMPTY_FORM = { name: '', voen: '', adminName: '', adminEmail: '', adminPassword: '', adminRole: ROLE_IT_ADMIN }
+
+// The first user must be able to manage the company, so staff is not offered; IT admin is the default.
+const FIRST_USER_ROLES = COMPANY_ROLE_OPTIONS.filter((role) => role.id !== ROLE_STAFF).sort(
+  (a, b) => (b.id === ROLE_IT_ADMIN) - (a.id === ROLE_IT_ADMIN),
+)
 
 // New company with its first admin. The server validates everything; its message is shown as is.
 export function CreateTenantModal({ onClose, onCreated }) {
@@ -31,6 +37,7 @@ export function CreateTenantModal({ onClose, onCreated }) {
         adminName: form.adminName,
         adminEmail: form.adminEmail,
         adminPassword: form.adminPassword,
+        adminRole: form.adminRole,
       })
       onCreated(result)
     } catch (submitError) {
@@ -63,6 +70,16 @@ export function CreateTenantModal({ onClose, onCreated }) {
           <label className={styles.adminField}>
             <span className={styles.adminFieldLabel}>E-poçt</span>
             <input {...field('adminEmail')} type="email" required maxLength={150} autoComplete="off" />
+          </label>
+          <label className={`${styles.adminField} sm:col-span-2`}>
+            <span className={styles.adminFieldLabel}>Rol</span>
+            <select {...field('adminRole')}>
+              {FIRST_USER_ROLES.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className={`${styles.adminField} sm:col-span-2`}>
             <span className={styles.adminFieldLabel}>İlkin şifrə</span>

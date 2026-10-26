@@ -1,44 +1,37 @@
-import { useSyncExternalStore } from 'react'
+import { fromApiDate, formatDate } from '@/lib/date'
+import { createApiCollection } from '@/store/create-api-collection'
 
-let nextSequence = 1
+// GET /api/expenses row → the expense shape the finance page uses. `number` fills the ledger's document column
+// (purchases show their invoice number there, expenses their date).
+export function toExpense(expense) {
+  const createdAt = fromApiDate(expense.expenseDate)
 
-let state = {
-  expenses: [],
-}
-
-const listeners = new Set()
-
-function emit() {
-  for (const listener of listeners) {
-    listener()
+  return {
+    id: expense.id,
+    // Real expenses can be moved to another store; the ledger's purchase and payroll rows cannot.
+    kind: 'expense',
+    number: formatDate(createdAt),
+    category: expense.expenseCategory?.name ?? '—',
+    amount: expense.amount,
+    createdAt,
+    note: expense.note ?? null,
+    cashRegisterId: expense.cashRegisterId,
+    storeId: expense.storeId ?? null,
+    store: expense.store?.name ?? null,
   }
 }
 
-export function getFinanceState() {
-  return state
-}
+// Newest first, like the server; a new expense goes to the top.
+const expenses = createApiCollection({ path: '/expenses', fromApi: toExpense })
 
-export function subscribeFinance(listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
+export const loadExpenses = expenses.load
 
-export function addExpense({ category, amount }) {
-  const expense = {
-    id: String(nextSequence),
-    number: `MƏX-2026-${String(nextSequence).padStart(3, '0')}`,
-    category,
-    amount,
-    createdAt: new Date().toISOString(),
-  }
-
-  nextSequence += 1
-  state = { expenses: [expense, ...state.expenses] }
-  emit()
+export function upsertExpense(expense) {
+  return expenses.upsert(expense)
 }
 
 export function useFinanceStore() {
-  return useSyncExternalStore(subscribeFinance, getFinanceState, getFinanceState)
+  const { items, isLoading, error, reload } = expenses.useCollection()
+
+  return { expenses: items, isLoading, error, reload }
 }

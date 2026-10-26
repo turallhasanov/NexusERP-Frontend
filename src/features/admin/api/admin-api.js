@@ -21,15 +21,26 @@ export async function fetchTenantSummary({ id, ...params }) {
   return summary
 }
 
-// POST /api/admin/tenants { name, voen, adminName, adminEmail, adminPassword } → { tenant, admin }
+// POST /api/admin/tenants { name, voen, adminName, adminEmail, adminPassword, adminRole: 'itadmin' (default) | 'admin' } → { tenant, admin }
 export async function createTenant(body) {
   return apiClient.post('/admin/tenants', body)
+}
+
+// POST /api/admin/tenants/{id}/users { fullName, email, password, role: 'itadmin' | 'staff' } → the new user.
+export async function createTenantUser(id, body) {
+  const { user } = await apiClient.post(`${tenantPath(id)}/users`, body)
+  return user
 }
 
 // PUT /api/admin/tenants/{id}/status { status: 'active' | 'passive' | 'suspended' } → the updated tenant row.
 export async function updateTenantStatus(id, status) {
   const { tenant } = await apiClient.put(`${tenantPath(id)}/status`, { status })
   return tenant
+}
+
+// DELETE /api/admin/tenants/{id}: soft delete; the company leaves the list and its users can no longer sign in.
+export async function deleteTenant(id) {
+  await apiClient.delete(tenantPath(id))
 }
 
 // POST /api/admin/tenants/{id}/impersonate → { token, expiresAt, company: { id, name, voen } } (read-only token).

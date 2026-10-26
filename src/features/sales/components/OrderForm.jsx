@@ -83,9 +83,9 @@ export function OrderForm({ onCreated }) {
               ))}
             </select>
           </Field>
-          <Field label="Depo">
+          <Field label="Anbar">
             <select className={styles.input} value={form.warehouseId} onChange={updateField('warehouseId')}>
-              <option value="">{selectedStore ? `Mağazanın deposu (${selectedStore.warehouse?.name ?? '—'})` : 'Mağazanın deposu'}</option>
+              <option value="">{selectedStore ? `Mağazanın anbarı (${selectedStore.warehouse?.name ?? '—'})` : 'Mağazanın anbarı'}</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}

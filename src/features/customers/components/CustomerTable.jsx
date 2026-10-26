@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { TableState } from '@/components/ui/table-state'
+import { displayPhone } from '@/lib/phone'
 import { styles } from '@/lib/styles'
 
 const TABLE_COLUMNS = ['Kod', 'Ad', 'VÖEN', 'Telefon', 'Ünvan']
@@ -34,7 +35,7 @@ export function CustomerTable({ customers, isLoading = false, error = '', onRetr
                   <td className={styles.tableCellMuted}>{customer.code}</td>
                   <td className={styles.tableCell}>{customer.name}</td>
                   <td className={styles.tableCellMuted}>{customer.voen || '—'}</td>
-                  <td className={styles.tableCellMuted}>{customer.phone || '—'}</td>
+                  <td className={styles.tableCellMuted}>{displayPhone(customer.phone) || '—'}</td>
                   <td className={styles.tableCellMuted}>{customer.address || '—'}</td>
                 </tr>
               ))

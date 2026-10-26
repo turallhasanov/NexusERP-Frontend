@@ -90,7 +90,7 @@ export function PosPage() {
     const nextQty = (inCart?.quantity ?? 0) + 1
 
     if (nextQty > product.stock) {
-      setError(`Bu depoda yalnız ${product.stock} ${product.unitName} var.`)
+      setError(`Bu anbarda yalnız ${product.stock} ${product.unitName} var.`)
       setNotice('')
       return false
     }

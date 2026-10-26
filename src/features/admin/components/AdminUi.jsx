@@ -47,6 +47,7 @@ const badgeTones = {
   muted: styles.adminBadgeMuted,
   warning: styles.adminBadgeWarning,
   danger: styles.adminBadgeDanger,
+  caution: styles.adminBadgeCaution,
   platform: styles.adminBadgePlatform,
 }
 

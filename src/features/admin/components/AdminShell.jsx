@@ -14,6 +14,7 @@ import { USER_ROLE_LABELS } from '@/types/auth'
 const NAV_ITEMS = [
   { label: 'Şirkətlər', href: routes.adminTenants },
   { label: 'Analitika', href: routes.adminAnalytics },
+  { label: 'Dəstək çatı', href: routes.adminSupport },
   { label: 'Parametrlər', href: routes.adminSettings },
 ]
 
