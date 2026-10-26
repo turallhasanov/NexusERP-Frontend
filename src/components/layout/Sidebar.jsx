@@ -6,11 +6,14 @@ import { cn } from '@/lib/cn'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
 import { useAuthStore } from '@/store/auth-store'
+import { isCompanyManager, isItAdmin } from '@/types/auth'
 
 export function Sidebar() {
   const { company } = useCompany()
   const { user } = useAuthStore()
-  const items = navItems.filter((item) => !item.adminOnly || user?.role === 'admin')
+  const items = navItems.filter(
+    (item) => (!item.adminOnly || isCompanyManager(user)) && (!item.itAdminOnly || isItAdmin(user)),
+  )
 
   return (
     <aside className={styles.sidebar}>

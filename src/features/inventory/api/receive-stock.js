@@ -11,7 +11,7 @@ export function addStock({ productId, warehouseId, quantity }) {
   const warehouse = getWarehouse(warehouseId)
 
   if (!warehouse) {
-    return { ok: false, error: 'Depo tapılmadı.' }
+    return { ok: false, error: 'Anbar tapılmadı.' }
   }
 
   return receiveStock(productId, warehouseId, quantity)

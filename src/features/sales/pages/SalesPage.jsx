@@ -12,15 +12,28 @@ import { OrderTable } from '@/features/sales/components/OrderTable'
 import { useOrders } from '@/features/sales/api/use-orders'
 import { useDocumentDetail } from '@/hooks/use-document-detail'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { cn } from '@/lib/cn'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
+import { CHANNEL_ONLINE } from '@/store/orders-store'
 import { showToast } from '@/store/toast-store'
+
+const FILTER_ALL = 'all'
+const FILTER_ONLINE = 'online'
+
+const FILTERS = [
+  { id: FILTER_ALL, label: 'Bütün satışlar' },
+  { id: FILTER_ONLINE, label: 'Online sifarişlər (Khazar)' },
+]
 
 export function SalesPage() {
   const { orders, draftOrders, approvedOrders, isLoading, error, reload } = useOrders()
   const [selectedId, setSelectedId] = useState('')
   const [preview, setPreview] = useState(false)
   const [approvingId, setApprovingId] = useState('')
+  const [filter, setFilter] = useState(FILTER_ALL)
+  const onlineOrders = orders.filter((order) => order.channel === CHANNEL_ONLINE)
+  const shownOrders = filter === FILTER_ONLINE ? onlineOrders : orders
   const selectedOrder = orders.find((order) => order.id === selectedId) ?? orders[0]
   const detail = useDocumentDetail(fetchSale, selectedOrder?.id, selectedOrder?.status)
   const dekont = detail.document ? buildSalesDekont(detail.document) : null
@@ -73,22 +86,40 @@ export function SalesPage() {
           <p className={styles.summaryLabel}>Təsdiqlənib</p>
           <p className={styles.summaryValue}>{isLoading ? '…' : approvedOrders}</p>
         </Card>
+        <Card>
+          <p className={styles.summaryLabel}>Online sifariş (Khazar)</p>
+          <p className={styles.summaryValue}>{isLoading ? '…' : onlineOrders.length}</p>
+        </Card>
       </div>
       <div className={styles.salesLayout}>
         <OrderForm onCreated={(order) => setSelectedId(order.id)} />
         <InvoiceReceipt
-          title="Satış dekontu"
+          title="Satış qaiməsi"
           dekont={dekont}
           isLoading={detail.isLoading}
           error={detail.error}
-          emptyText="Dekont üçün əvvəlcə satış yazın."
+          emptyText="Qaimə üçün əvvəlcə satış yazın."
           onView={() => setPreview(true)}
           onPrint={() => window.print()}
           onPdf={viewPdf}
         />
       </div>
+      <div className={styles.periodRow} role="group" aria-label="Satış filtri">
+        {FILTERS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={filter === item.id}
+            className={cn(styles.periodChip, filter === item.id ? styles.periodChipActive : styles.periodChipIdle)}
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
       <OrderTable
-        orders={orders}
+        orders={shownOrders}
+        emptyText={filter === FILTER_ONLINE ? 'Khazar-dan hələ online sifariş gəlməyib.' : 'Hələ satış yoxdur.'}
         isLoading={isLoading}
         error={error}
         onRetry={reload}
@@ -98,7 +129,7 @@ export function SalesPage() {
       />
       {preview ? (
         <DekontPreview
-          title="Satış dekontu"
+          title="Satış qaiməsi"
           dekont={dekont}
           onClose={() => setPreview(false)}
           onPrint={() => window.print()}

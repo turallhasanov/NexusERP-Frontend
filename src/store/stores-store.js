@@ -13,6 +13,15 @@ export function addStore(store) {
   return stores.add(store)
 }
 
+// Replaces the row with the one returned by PUT /api/stores/{id}.
+export function replaceStore(store) {
+  return stores.upsert(store)
+}
+
+export function removeStore(storeId) {
+  stores.remove(storeId)
+}
+
 export function useStoresStore() {
   const { items, isLoading, error, reload } = stores.useCollection()
 

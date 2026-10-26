@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { getAuthState, logout } from '@/store/auth-store'
+import { getAuthState, logout, stopImpersonation } from '@/store/auth-store'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5299/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5264/api'
 
 // Requests where a 401 means "wrong credentials", not "session expired": show the error, keep the page.
 const CREDENTIAL_PATHS = ['/auth/login']
@@ -63,8 +63,13 @@ apiClient.interceptors.response.use(
     const message = error.response?.data?.error
 
     if (status === 401 && !CREDENTIAL_PATHS.includes(error.config?.url)) {
-      // Every page except /login sits behind RequireAuth, so clearing the session redirects to /login.
-      logout()
+      if (getAuthState().impersonation) {
+        // An expired company view only ends the view: the platform admin goes back to the admin panel.
+        stopImpersonation()
+      } else {
+        // Every page except /login sits behind RequireAuth, so clearing the session redirects to /login.
+        logout()
+      }
     }
 
     if (!error.response) {

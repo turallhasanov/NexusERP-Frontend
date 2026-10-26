@@ -1,12 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { routes } from '@/lib/routes'
+import { homeRoute } from '@/lib/home-route'
 import { useAuthStore } from '@/store/auth-store'
 
 export function RequireCompany() {
-  const { activeCompanyId } = useAuthStore()
+  const auth = useAuthStore()
 
-  if (!activeCompanyId) {
-    return <Navigate to={routes.selectCompany} replace />
+  // Company users go to the company page; platform admins (who have no company) to the admin panel.
+  if (!auth.activeCompanyId) {
+    return <Navigate to={homeRoute(auth)} replace />
   }
 
   return <Outlet />

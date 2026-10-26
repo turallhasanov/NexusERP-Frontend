@@ -54,9 +54,9 @@ export function StoreForm() {
           <Field label="Ad">
             <Input value={form.name} onChange={updateField('name')} placeholder="Bakı mağazası" />
           </Field>
-          <Field label="Depo">
+          <Field label="Anbar">
             <select className={styles.input} value={form.warehouseId} onChange={updateField('warehouseId')}>
-              <option value="">{warehousesLoading ? 'Yüklənir…' : 'Depo seçin'}</option>
+              <option value="">{warehousesLoading ? 'Yüklənir…' : 'Anbar seçin'}</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
                   {warehouse.name}

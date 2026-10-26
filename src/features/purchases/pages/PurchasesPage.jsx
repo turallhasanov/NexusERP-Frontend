@@ -53,7 +53,7 @@ export function PurchasesPage() {
   }
 
   return (
-    <PageContainer title="Alış" description="Mal girişi: qaralama yazılır, təsdiqləndikdə depo qalığı artır.">
+    <PageContainer title="Alış" description="Mal girişi: qaralama yazılır, təsdiqləndikdə anbar qalığı artır.">
       <div className={styles.summaryGrid}>
         <Card>
           <p className={styles.summaryLabel}>Qaralama</p>
@@ -67,11 +67,11 @@ export function PurchasesPage() {
       <div className={styles.salesLayout}>
         <PurchaseForm onCreated={(purchase) => setSelectedId(purchase.id)} />
         <InvoiceReceipt
-          title="Alış dekontu"
+          title="Alış qaiməsi"
           dekont={dekont}
           isLoading={detail.isLoading}
           error={detail.error}
-          emptyText="Dekont üçün əvvəlcə alış yazın."
+          emptyText="Qaimə üçün əvvəlcə alış yazın."
           onView={() => setPreview(true)}
           onPrint={() => window.print()}
           onPdf={viewPdf}
@@ -88,7 +88,7 @@ export function PurchasesPage() {
       />
       {preview ? (
         <DekontPreview
-          title="Alış dekontu"
+          title="Alış qaiməsi"
           dekont={dekont}
           onClose={() => setPreview(false)}
           onPrint={() => window.print()}

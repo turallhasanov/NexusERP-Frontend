@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { fetchMyCompany } from '@/features/company/api/join-company'
+import { CompanyUsersTable } from '@/features/settings/components/CompanyUsersTable'
 import { useApiQuery } from '@/hooks/use-api-query'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { styles } from '@/lib/styles'
@@ -29,7 +30,7 @@ export function SettingsPage() {
   }
 
   return (
-    <PageContainer title="Parametrlər" description="Şirkət profili və əməkdaşların dəvəti.">
+    <PageContainer title="Parametrlər" description="Şirkət profili, əməkdaşların dəvəti və rolları.">
       <section className="space-y-4">
         <h2 className={styles.sectionTitle}>Şirkət profili</h2>
         <Card>
@@ -81,6 +82,12 @@ export function SettingsPage() {
               </Button>
             </div>
           </Card>
+        </section>
+      ) : null}
+      {company.data ? (
+        <section className="space-y-4">
+          <h2 className={styles.sectionTitle}>İstifadəçilər və rollar</h2>
+          <CompanyUsersTable />
         </section>
       ) : null}
       <section className="space-y-4">

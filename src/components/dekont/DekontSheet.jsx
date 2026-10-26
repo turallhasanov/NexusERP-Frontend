@@ -1,6 +1,21 @@
 import { styles } from '@/lib/styles'
 
-const RIGHT_COLUMNS = new Set(['Mədaxil', 'Məxaric', 'Qalıq', 'Məbləğ', 'Qiymət', 'Cəm', 'Say', 'Maaş', 'Dəyər', 'Miqdar'])
+const RIGHT_COLUMNS = new Set([
+  'Mədaxil',
+  'Məxaric',
+  'Qalıq',
+  'Məbləğ',
+  'Qiymət',
+  'Cəm',
+  'Say',
+  'Maaş',
+  'Dəyər',
+  'Miqdar',
+  'Maya dəyəri',
+  'Xərclər',
+  'Xalis nəticə',
+  'Marja',
+])
 
 function tableCellClass(column) {
   return RIGHT_COLUMNS.has(column) ? 'py-2 pr-3 text-right tabular-nums' : 'py-2 pr-3'

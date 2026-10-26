@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { isTokenExpired } from '@/lib/jwt'
-import { clearCompany } from '@/store/company-store'
+import { clearCompany, setCompany } from '@/store/company-store'
 
 const STORAGE_KEY = 'nexuserp-auth'
 
@@ -8,6 +8,18 @@ const EMPTY_STATE = {
   token: null,
   user: null,
   activeCompanyId: null,
+  // Set while a platform admin views a company: { adminToken, adminUser, company, expiresAt }.
+  // `token` is then the read-only impersonation token; the admin's own session waits here.
+  impersonation: null,
+}
+
+// The admin's session from before an impersonation, or a logged-out state if that has expired too.
+function adminSession(impersonation) {
+  if (!impersonation?.adminToken || isTokenExpired(impersonation.adminToken)) {
+    return EMPTY_STATE
+  }
+
+  return { ...EMPTY_STATE, token: impersonation.adminToken, user: impersonation.adminUser ?? null }
 }
 
 function readStoredAuth() {
@@ -20,6 +32,13 @@ function readStoredAuth() {
 
     const parsed = JSON.parse(raw)
 
+    // An expired company view falls back to the admin's own session, if that is still valid.
+    if (parsed?.impersonation && (!parsed.token || isTokenExpired(parsed.token))) {
+      const session = adminSession(parsed.impersonation)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+      return session
+    }
+
     // An expired token would only earn a 401 on the first request; start logged out instead.
     if (!parsed?.token || isTokenExpired(parsed.token)) {
       localStorage.removeItem(STORAGE_KEY)
@@ -30,6 +49,7 @@ function readStoredAuth() {
       token: parsed.token,
       user: parsed.user ?? null,
       activeCompanyId: parsed.activeCompanyId ?? null,
+      impersonation: parsed.impersonation ?? null,
     }
   } catch {
     return EMPTY_STATE
@@ -93,6 +113,28 @@ export function enterCompany({ token, companyId, role }) {
 
 export function setActiveCompany(companyId) {
   setState({ ...state, activeCompanyId: companyId })
+}
+
+// Platform admin → read-only view of one company, from POST /api/admin/tenants/{id}/impersonate.
+// The app then behaves as that company's admin would see it; the server rejects every write.
+export function startImpersonation({ token, company, expiresAt }) {
+  const current = state.impersonation
+  const adminToken = current ? current.adminToken : state.token
+  const adminUser = current ? current.adminUser : state.user
+
+  setState({
+    token,
+    user: adminUser ? { ...adminUser, role: 'admin', companyId: company.id } : null,
+    activeCompanyId: company.id,
+    impersonation: { adminToken, adminUser, company, expiresAt },
+  })
+  setCompany(company)
+}
+
+// Back to the admin's own session (or logged out, if it has expired meanwhile).
+export function stopImpersonation() {
+  setState(adminSession(state.impersonation))
+  clearCompany()
 }
 
 export function useAuthStore() {

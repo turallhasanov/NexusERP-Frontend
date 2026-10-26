@@ -14,6 +14,15 @@ export function addProductType(type) {
   return types.add(type)
 }
 
+// Replaces the row with the one returned by PUT /api/categories/{id}.
+export function replaceProductType(type) {
+  return types.upsert(type)
+}
+
+export function removeProductType(typeId) {
+  types.remove(typeId)
+}
+
 export function useProductTypesStore() {
   const { items, isLoading, error, reload } = types.useCollection()
 

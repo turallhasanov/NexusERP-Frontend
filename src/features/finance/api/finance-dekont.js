@@ -1,5 +1,6 @@
 import { formatAzn } from '@/lib/money'
-import { formatDate, periodColumn, periodFileTag, periodLabel, toDateInput } from '@/lib/date'
+import { formatMargin } from '@/features/finance/api/finance-summary'
+import { formatDate, formatPeriod, periodColumn, periodFileTag, periodLabel, toDateInput } from '@/lib/date'
 import { openReportPdf } from '@/lib/pdf'
 
 const FOOTER = 'NexusERP maliyyə hesabatı'
@@ -11,33 +12,43 @@ function reportMeta(period) {
   ]
 }
 
-export function buildBalanceDekont({ income, expenseTotal, balance, payroll, labels, period }) {
+// `totals` of GET /api/finance/summary without a store: the same figures as the cards and "Bütün mağazalar".
+export function buildBalanceDekont({ totals, labels, period }) {
+  const t = totals ?? {}
+
   return {
     title: 'Balans hesabatı',
     meta: reportMeta(period),
     rows: [
-      { label: labels.income, value: formatAzn(income) },
-      { label: labels.expense, value: formatAzn(expenseTotal) },
-      { label: labels.payroll, value: formatAzn(payroll) },
-      { label: labels.balance, value: formatAzn(balance), strong: true },
+      { label: labels.income, value: formatAzn(t.revenue ?? 0) },
+      { label: 'Satılan malın maya dəyəri', value: formatAzn(t.costOfGoodsSold ?? 0) },
+      { label: 'Əməliyyat xərcləri', value: formatAzn(t.operatingExpenses ?? 0) },
+      { label: labels.payroll, value: formatAzn(t.payroll ?? 0) },
+      { label: labels.expense, value: formatAzn(t.totalExpenses ?? 0) },
+      { label: labels.balance, value: formatAzn(t.netProfit ?? 0), strong: true },
+      { label: 'Marja', value: formatMargin(t.profitMargin) },
     ],
     footer: FOOTER,
   }
 }
 
-export function buildMizanDekont(months, period) {
+// Rows of GET /api/finance/mizan.
+export function buildMizanDekont(rows, period) {
   const column = periodColumn(period)
 
   return {
     title: 'Mizan hesabatı',
     meta: reportMeta(period),
     table: {
-      columns: [column, 'Mədaxil', 'Məxaric', 'Qalıq'],
-      rows: months.map((month) => [
-        month.label,
-        formatAzn(month.income),
-        formatAzn(month.expense),
-        formatAzn(month.balance),
+      columns: [column, 'Mədaxil', 'Maya dəyəri', 'Xərclər', 'Maaş', 'Qalıq', 'Marja'],
+      rows: rows.map((row) => [
+        formatPeriod(row.key, period),
+        formatAzn(row.totals.revenue),
+        formatAzn(row.totals.costOfGoodsSold),
+        formatAzn(row.totals.operatingExpenses),
+        formatAzn(row.totals.payroll),
+        formatAzn(row.totals.netProfit),
+        formatMargin(row.totals.profitMargin),
       ]),
       empty: 'Hələ mizan hesabatı yoxdur.',
     },
@@ -45,20 +56,21 @@ export function buildMizanDekont(months, period) {
   }
 }
 
-export function buildStoreMizanDekont(storeMonths, period) {
-  const column = periodColumn(period)
-
+// Rows of GET /api/finance/summary (`stores`); `storeName` is the selected store, or null for all stores.
+export function buildStoreMizanDekont(rows, period, storeName = null) {
   return {
     title: 'Mağaza mizan hesabatı',
-    meta: reportMeta(period),
+    meta: [...reportMeta(period), { label: 'Mağaza', value: storeName ?? 'Bütün mağazalar' }],
     table: {
-      columns: ['Mağaza', column, 'Mədaxil', 'Məxaric', 'Qalıq'],
-      rows: storeMonths.map((row) => [
-        row.store,
-        row.label,
-        formatAzn(row.income),
-        formatAzn(row.expense),
-        formatAzn(row.balance),
+      columns: ['Mağaza', 'Mədaxil', 'Maya dəyəri', 'Xərclər', 'Maaş', 'Xalis nəticə', 'Marja'],
+      rows: rows.map((row) => [
+        row.name,
+        formatAzn(row.totals.revenue),
+        formatAzn(row.totals.costOfGoodsSold),
+        formatAzn(row.totals.operatingExpenses),
+        formatAzn(row.totals.payroll),
+        formatAzn(row.totals.netProfit),
+        formatMargin(row.totals.profitMargin),
       ]),
       empty: 'Hələ mağaza mizan hesabatı yoxdur.',
     },

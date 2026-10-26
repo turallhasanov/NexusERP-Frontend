@@ -6,7 +6,7 @@ import { formatDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Kontragent', 'VÖEN', 'Depo', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
+const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Kontragent', 'VÖEN', 'Anbar', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
 
 export function PurchaseTable({ purchases, isLoading, error, onRetry, onView, onApprove, approvingId }) {
   const showRows = !isLoading && !error

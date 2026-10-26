@@ -15,7 +15,7 @@ export function buildInventoryDekont(products, warehouses) {
     title: 'Anbar hesabatı',
     meta: [
       { label: 'Tarix', value: formatDate(toDateInput()) },
-      { label: 'Depo sayı', value: String(warehouses.length) },
+      { label: 'Anbar sayı', value: String(warehouses.length) },
       { label: 'Məhsul sayı', value: String(products.length) },
       { label: 'Kritik ehtiyat', value: String(criticalStock) },
     ],
