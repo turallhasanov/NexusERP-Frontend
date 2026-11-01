@@ -8,8 +8,8 @@ function employeePath(id) {
   return `/employees/${encodeURIComponent(id)}`
 }
 
-// POST /api/employees
-export async function createEmployee({ name, title, department, hiredAt, salary, storeId }) {
+// POST /api/employees: also numbers the hiring order (ƏMR-2026-001, ...). FİN and probation (months) are optional.
+export async function createEmployee({ name, title, department, hiredAt, salary, storeId, fin, probationMonths }) {
   const { employee } = await apiClient.post('/employees', {
     fullName: name,
     title,
@@ -17,12 +17,14 @@ export async function createEmployee({ name, title, department, hiredAt, salary,
     hiredAt,
     salary,
     storeId: storeId || null,
+    fin: fin || null,
+    probationMonths: probationMonths ? Number(probationMonths) : null,
   })
   return upsertEmployee(employee)
 }
 
-// PUT /api/employees/{id}: the whole profile, including the store (empty = company-wide staff).
-export async function updateEmployee(id, { name, title, department, hiredAt, salary, storeId }) {
+// PUT /api/employees/{id}: the whole profile, including the store (empty = company-wide staff), FİN and probation.
+export async function updateEmployee(id, { name, title, department, hiredAt, salary, storeId, fin, probationMonths }) {
   const { employee } = await apiClient.put(employeePath(id), {
     fullName: name,
     title,
@@ -30,6 +32,8 @@ export async function updateEmployee(id, { name, title, department, hiredAt, sal
     hiredAt,
     salary,
     storeId: storeId || null,
+    fin: fin || null,
+    probationMonths: probationMonths ? Number(probationMonths) : null,
   })
   return upsertEmployee(employee)
 }
@@ -61,6 +65,12 @@ export async function terminateEmployee(id, { terminationDate, reason }) {
 export async function deleteEmployee(id) {
   await apiClient.delete(employeePath(id))
   removeEmployee(id)
+}
+
+// GET /api/employees/{id}/hiring-document: the server records each fetch in the audit log. Takes `{ id }` for useApiQuery.
+export async function fetchHiringDocument({ id }) {
+  const { document } = await apiClient.get(`${employeePath(id)}/hiring-document`)
+  return document
 }
 
 // GET /api/employees/{id}/termination-document. Takes `{ id }` for useApiQuery.

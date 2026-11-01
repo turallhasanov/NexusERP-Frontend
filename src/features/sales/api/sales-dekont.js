@@ -7,6 +7,7 @@ import { getCustomer } from '@/store/customers-store'
 export const DOCUMENT_STATUS_LABELS = {
   draft: 'Qaralama',
   approved: 'Təsdiqlənib',
+  cancelled: 'Ləğv edildi',
 }
 
 // Lines of a full API document (sale or purchase) → dekont lines.

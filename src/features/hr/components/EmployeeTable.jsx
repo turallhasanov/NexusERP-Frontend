@@ -22,6 +22,7 @@ export function EmployeeTable({
   onReturn,
   onTerminate,
   onDocument,
+  onHiringDocument,
   onEdit,
   // Only for IT admins: adds "Sil".
   onDelete,
@@ -87,6 +88,7 @@ export function EmployeeTable({
                         onReturn={onReturn}
                         onTerminate={onTerminate}
                         onDocument={onDocument}
+                        onHiringDocument={onHiringDocument}
                         onEdit={onEdit}
                         onDelete={onDelete}
                       />
@@ -103,7 +105,25 @@ export function EmployeeTable({
   )
 }
 
-function EmployeeActions({ employee, busy, disabled, onVacation, onReturn, onTerminate, onDocument, onEdit, onDelete }) {
+function EmployeeActions({
+  employee,
+  busy,
+  disabled,
+  onVacation,
+  onReturn,
+  onTerminate,
+  onDocument,
+  onHiringDocument,
+  onEdit,
+  onDelete,
+}) {
+  // Every employee has a hiring order, terminated ones included.
+  const hiringButton = (
+    <button type="button" className={styles.headerAction} onClick={() => onHiringDocument(employee)} disabled={disabled}>
+      {employee.status === 'left' ? '🖨 Qəbul əmri' : '🖨 Əmri çap et'}
+    </button>
+  )
+
   const editButton = (
     <>
       <button type="button" className={styles.headerAction} onClick={() => onEdit(employee)} disabled={disabled}>
@@ -121,8 +141,9 @@ function EmployeeActions({ employee, busy, disabled, onVacation, onReturn, onTer
     return (
       <div className={styles.rowActions}>
         <button type="button" className={styles.textActionStrong} onClick={() => onDocument(employee)}>
-          Əmrə bax / Yazdır
+          Xitam əmri / Yazdır
         </button>
+        {hiringButton}
         {editButton}
       </div>
     )
@@ -149,6 +170,7 @@ function EmployeeActions({ employee, busy, disabled, onVacation, onReturn, onTer
           Məzuniyyətə göndər
         </button>
       )}
+      {hiringButton}
       {editButton}
       <button type="button" className={styles.headerAction} onClick={() => onTerminate(employee)} disabled={disabled}>
         İşdən çıxar

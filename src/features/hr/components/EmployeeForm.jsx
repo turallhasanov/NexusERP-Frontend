@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { createEmployee } from '@/features/hr/api/employees-api'
-import { DEPARTMENTS } from '@/features/hr/lib/hr-options'
+import { DEPARTMENTS, normalizeFin, PROBATION_OPTIONS } from '@/features/hr/lib/hr-options'
 import { toDateInput } from '@/lib/date'
 import { styles } from '@/lib/styles'
 import { useStoresStore } from '@/store/stores-store'
@@ -18,9 +18,13 @@ const EMPTY_FORM = {
   salary: '',
   // Optional: the store whose profit the salary counts toward.
   storeId: '',
+  // Optional, printed on the hiring order.
+  fin: '',
+  probationMonths: '',
 }
 
-export function EmployeeForm() {
+// `onCreated(employee)` runs after the save, e.g. to open the new hiring order.
+export function EmployeeForm({ onCreated }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const { stores } = useStoresStore()
   const [error, setError] = useState('')
@@ -30,7 +34,7 @@ export function EmployeeForm() {
     return (event) => {
       setForm((current) => ({
         ...current,
-        [field]: event.target.value,
+        [field]: field === 'fin' ? normalizeFin(event.target.value) : event.target.value,
       }))
     }
   }
@@ -54,13 +58,28 @@ export function EmployeeForm() {
       return
     }
 
+    if (form.fin && form.fin.length !== 7) {
+      setError('FİN 7 simvoldan ibarət olmalıdır.')
+      return
+    }
+
     setError('')
     setSubmitting(true)
 
     try {
-      const employee = await createEmployee({ name, title, department, hiredAt, salary, storeId: form.storeId })
+      const employee = await createEmployee({
+        name,
+        title,
+        department,
+        hiredAt,
+        salary,
+        storeId: form.storeId,
+        fin: form.fin,
+        probationMonths: form.probationMonths,
+      })
       setForm({ ...EMPTY_FORM, hiredAt: toDateInput() })
-      showToast(`İşçi əlavə edildi: ${employee.name}`)
+      showToast(`İşçi əlavə edildi: ${employee.name}. Əmr № ${employee.hiringOrderNumber} yaradıldı.`)
+      onCreated?.(employee)
     } catch (submitError) {
       setError(submitError.message)
     } finally {
@@ -78,6 +97,9 @@ export function EmployeeForm() {
               onChange={updateField('name')}
               placeholder="Ad və soyad"
             />
+          </Field>
+          <Field label="FİN (istəyə bağlı)">
+            <Input value={form.fin} onChange={updateField('fin')} placeholder="5AB12CD" maxLength={7} />
           </Field>
           <Field label="Vəzifə">
             <Input
@@ -124,6 +146,15 @@ export function EmployeeForm() {
               onChange={updateField('salary')}
               placeholder="0.00"
             />
+          </Field>
+          <Field label="Sınaq müddəti">
+            <select className={styles.input} value={form.probationMonths} onChange={updateField('probationMonths')}>
+              {PROBATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
         {error ? <p className={styles.formError}>{error}</p> : null}

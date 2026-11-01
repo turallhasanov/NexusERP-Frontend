@@ -28,6 +28,19 @@ export const TERMINATION_REASONS = [
 
 export const OTHER_REASON = 'other'
 
+// Probation in months; the Labour Code allows at most three. '' = none.
+export const PROBATION_OPTIONS = [
+  { value: '', label: 'Sınaq müddəti yoxdur' },
+  { value: '1', label: '1 ay' },
+  { value: '2', label: '2 ay' },
+  { value: '3', label: '3 ay' },
+]
+
+// FİN from the ID card: 7 Latin letters and digits, kept upper-case while typing.
+export function normalizeFin(value) {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7)
+}
+
 // "26.10.2026 – 08.11.2026"
 export function formatDateRange(start, end) {
   return `${formatDate(start)} – ${formatDate(end)}`

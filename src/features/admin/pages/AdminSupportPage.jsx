@@ -135,7 +135,7 @@ export function AdminSupportPage() {
       description={
         hubState === HubConnectionState.Connected
           ? 'Şirkət istifadəçilərinin müraciətləri · canlı bağlantı'
-          : 'Şirkət istifadəçilərinin müraciətləri · canlı bağlantı yoxdur, yeniləmək üçün səhifəni təzələyin'
+          : 'Şirkət istifadəçilərinin müraciətləri · canlı bağlantı bərpa olunur, yeniliklər hər 10 saniyədən bir yoxlanılır'
       }
       action={<AdminChips label="Status filtri" options={FILTERS} value={filter} onChange={setFilter} />}
     >

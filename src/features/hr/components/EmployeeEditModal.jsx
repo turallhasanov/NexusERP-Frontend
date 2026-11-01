@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AdminModal } from '@/features/admin/components/AdminUi'
 import { updateEmployee } from '@/features/hr/api/employees-api'
-import { DEPARTMENTS } from '@/features/hr/lib/hr-options'
+import { DEPARTMENTS, normalizeFin, PROBATION_OPTIONS } from '@/features/hr/lib/hr-options'
 import { cn } from '@/lib/cn'
 import { styles } from '@/lib/styles'
 import { useStoresStore } from '@/store/stores-store'
@@ -16,6 +16,8 @@ export function EmployeeEditModal({ employee, onClose, onSaved }) {
     hiredAt: employee.hiredAt,
     salary: String(employee.salary),
     storeId: employee.storeId ?? '',
+    fin: employee.fin ?? '',
+    probationMonths: employee.probationMonths ? String(employee.probationMonths) : '',
   })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -25,7 +27,11 @@ export function EmployeeEditModal({ employee, onClose, onSaved }) {
   const input = cn(styles.adminInput, styles.adminDateInput)
 
   function updateField(field) {
-    return (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
+    return (event) =>
+      setForm((current) => ({
+        ...current,
+        [field]: field === 'fin' ? normalizeFin(event.target.value) : event.target.value,
+      }))
   }
 
   async function handleSubmit(event) {
@@ -78,6 +84,27 @@ export function EmployeeEditModal({ employee, onClose, onSaved }) {
               onChange={updateField('salary')}
               required
             />
+          </label>
+          <label className={styles.adminField}>
+            <span className={styles.adminFieldLabel}>FİN</span>
+            <input
+              className={styles.adminInput}
+              value={form.fin}
+              onChange={updateField('fin')}
+              placeholder="İstəyə bağlı"
+              minLength={7}
+              maxLength={7}
+            />
+          </label>
+          <label className={styles.adminField}>
+            <span className={styles.adminFieldLabel}>Sınaq müddəti</span>
+            <select className={input} value={form.probationMonths} onChange={updateField('probationMonths')}>
+              {PROBATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
         <label className={styles.adminField}>

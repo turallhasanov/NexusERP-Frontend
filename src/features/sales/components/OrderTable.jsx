@@ -1,12 +1,13 @@
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { TableState } from '@/components/ui/table-state'
+import { TrashIcon } from '@/components/ui/trash-icon'
 import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
 import { formatDate } from '@/lib/date'
 import { displayPhone } from '@/lib/phone'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
-import { CHANNEL_ONLINE } from '@/store/orders-store'
+import { CHANNEL_ONLINE, SALE_CANCELLED } from '@/store/orders-store'
 
 function orderTypeLabel(order) {
   if (order.channel === CHANNEL_ONLINE) {
@@ -18,7 +19,19 @@ function orderTypeLabel(order) {
 
 const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Növ', 'Müştəri / Kontragent', 'Mağaza', 'Anbar', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
 
-export function OrderTable({ orders, isLoading, error, onRetry, onView, onApprove, approvingId, emptyText = 'Hələ satış yoxdur.' }) {
+export function OrderTable({
+  orders,
+  isLoading,
+  error,
+  onRetry,
+  onView,
+  onApprove,
+  approvingId,
+  canDelete = false,
+  onDelete,
+  deletingId,
+  emptyText = 'Hələ satış yoxdur.',
+}) {
   const showRows = !isLoading && !error
 
   return (
@@ -79,6 +92,18 @@ export function OrderTable({ orders, isLoading, error, onRetry, onView, onApprov
                           disabled={Boolean(approvingId)}
                         >
                           {approvingId === order.id ? <Spinner /> : 'Təsdiqlə'}
+                        </button>
+                      ) : null}
+                      {canDelete && order.status !== SALE_CANCELLED ? (
+                        <button
+                          type="button"
+                          className={styles.textActionDanger}
+                          onClick={() => onDelete(order)}
+                          disabled={Boolean(deletingId) || Boolean(approvingId)}
+                          title="Satışı ləğv et və stokları bərpa et"
+                        >
+                          {deletingId === order.id ? <Spinner /> : <TrashIcon />}
+                          Sil
                         </button>
                       ) : null}
                     </div>

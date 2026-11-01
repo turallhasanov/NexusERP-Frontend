@@ -5,8 +5,9 @@ import { useApiQuery } from '@/hooks/use-api-query'
 import { formatDate } from '@/lib/date'
 import { styles } from '@/lib/styles'
 
-// Company "logo": there is no uploaded logo yet, so the first letter of the name in a seal-like badge.
-function CompanyMark({ name }) {
+// Company "logo": there is no uploaded logo yet, so the first letter of the name in a seal-like badge. Shared with
+// the hiring order.
+export function CompanyMark({ name }) {
   return (
     <span className={styles.orderLogo} aria-hidden="true">
       {(name.trim()[0] ?? 'N').toLocaleUpperCase('az')}
