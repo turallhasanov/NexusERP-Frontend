@@ -5,18 +5,25 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { createProduct } from '@/features/products/api/create-product'
 import { generateBarcode } from '@/features/products/api/generate-barcode'
+import { ProductImageField } from '@/features/products/components/ProductImageField'
+import { ProductVariantFields } from '@/features/products/components/ProductVariantFields'
 import { useProductTypes } from '@/features/products/api/use-product-types'
 import { useProductUnits } from '@/features/products/api/use-product-units'
+import { cn } from '@/lib/cn'
 import { styles } from '@/lib/styles'
 import { showToast } from '@/store/toast-store'
 
 const EMPTY_FORM = {
   name: '',
+  color: '',
+  size: '',
   barcode: '',
   categoryId: '',
   unitId: '',
   purchasePrice: '',
   salePrice: '',
+  showOnWebsite: false,
+  image: null,
 }
 
 export function ProductForm({ onCreated }) {
@@ -26,7 +33,6 @@ export function ProductForm({ onCreated }) {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [generating, setGenerating] = useState(false)
-
   function updateField(field) {
     return (event) => {
       setForm((current) => ({
@@ -67,7 +73,18 @@ export function ProductForm({ onCreated }) {
     }
 
     setForm(EMPTY_FORM)
-    showToast(`Məhsul yaradıldı: ${result.product.sku} · ${result.product.name}`)
+
+    const created = `Məhsul yaradıldı: ${result.product.sku} · ${result.product.name}`
+
+    // A failed push leaves the product saved here; say so, so it can be sent again by saving it with the box ticked.
+    if (result.storefront.status === 'synced') {
+      showToast(`${created}. Khazar saytına göndərildi.`)
+    } else if (result.storefront.status === 'failed') {
+      showToast(`${created}. Amma Khazar saytına göndərilmədi: ${result.storefront.message}`, 'error')
+    } else {
+      showToast(created)
+    }
+
     onCreated?.(result.product)
   }
 
@@ -97,6 +114,13 @@ export function ProductForm({ onCreated }) {
               </button>
             </div>
           </label>
+          <ProductVariantFields
+            name={form.name}
+            color={form.color}
+            size={form.size}
+            onColorChange={(color) => setForm((current) => ({ ...current, color }))}
+            onSizeChange={(size) => setForm((current) => ({ ...current, size }))}
+          />
           <Field label="Kateqoriya">
             <select className={styles.input} value={form.categoryId} onChange={updateField('categoryId')}>
               <option value="">{typesLoading ? 'Yüklənir…' : 'Kateqoriya seçin'}</option>
@@ -140,6 +164,30 @@ export function ProductForm({ onCreated }) {
               placeholder="0.00"
             />
           </Field>
+        </div>
+        <div className={styles.formGrid}>
+          <ProductImageField
+            inputId="product-image"
+            file={form.image}
+            onFileChange={(image) => setForm((current) => ({ ...current, image }))}
+            onError={setError}
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                id="showOnWebsite"
+                type="checkbox"
+                checked={form.showOnWebsite}
+                onChange={(event) => setForm((current) => ({ ...current, showOnWebsite: event.target.checked }))}
+              />
+              <label htmlFor="showOnWebsite" className="cursor-pointer text-sm font-medium">
+                Khazar Storefront-da göstər
+              </label>
+            </div>
+            <p className={cn(styles.fieldHint, 'mt-1')}>
+              Yadda saxlayanda məhsul və şəkli Khazar saytının kataloquna göndərilir.
+            </p>
+          </div>
         </div>
         <p className={styles.fieldHint}>Məhsul kodu (MHS-001, …) avtomatik verilir.</p>
         {error ? <p className={styles.formError}>{error}</p> : null}

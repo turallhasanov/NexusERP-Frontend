@@ -4,6 +4,8 @@ import { getCustomer } from '@/store/customers-store'
 
 export const SALE_DRAFT = 'draft'
 export const SALE_APPROVED = 'approved'
+// An online order the Khazar store cancelled; its stock has been returned. Not shown in the default sales list.
+export const SALE_CANCELLED = 'cancelled'
 
 // Where a sale came from (the API's `channel`): entered here (sales form or POS), or a Khazar online order.
 export const CHANNEL_DIRECT = 'direct'

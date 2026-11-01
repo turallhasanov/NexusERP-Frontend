@@ -1,14 +1,28 @@
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { TableState } from '@/components/ui/table-state'
+import { TrashIcon } from '@/components/ui/trash-icon'
 import { OrderStatusBadge } from '@/features/sales/components/OrderStatusBadge'
 import { formatDate } from '@/lib/date'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
+import { PURCHASE_CANCELLED } from '@/store/purchases-store'
 
 const TABLE_COLUMNS = ['Qaimə', 'Tarix', 'Kontragent', 'VÖEN', 'Anbar', 'Sətir', 'Məbləğ', 'Status', 'Əməliyyat']
 
-export function PurchaseTable({ purchases, isLoading, error, onRetry, onView, onApprove, approvingId }) {
+export function PurchaseTable({
+  purchases,
+  isLoading,
+  error,
+  onRetry,
+  onView,
+  onApprove,
+  approvingId,
+  canDelete = false,
+  onDelete,
+  deletingId,
+  emptyText = 'Hələ alış yoxdur.',
+}) {
   const showRows = !isLoading && !error
 
   return (
@@ -30,7 +44,7 @@ export function PurchaseTable({ purchases, isLoading, error, onRetry, onView, on
             error={error}
             onRetry={onRetry}
             isEmpty={purchases.length === 0}
-            emptyText="Hələ alış yoxdur."
+            emptyText={emptyText}
           />
           {showRows
             ? purchases.map((purchase) => (
@@ -58,6 +72,18 @@ export function PurchaseTable({ purchases, isLoading, error, onRetry, onView, on
                           disabled={Boolean(approvingId)}
                         >
                           {approvingId === purchase.id ? <Spinner /> : 'Təsdiqlə'}
+                        </button>
+                      ) : null}
+                      {canDelete && purchase.status !== PURCHASE_CANCELLED ? (
+                        <button
+                          type="button"
+                          className={styles.textActionDanger}
+                          onClick={() => onDelete(purchase)}
+                          disabled={Boolean(deletingId) || Boolean(approvingId)}
+                          title="Alışı ləğv et və malları anbardan geri götür"
+                        >
+                          {deletingId === purchase.id ? <Spinner /> : <TrashIcon />}
+                          Sil
                         </button>
                       ) : null}
                     </div>

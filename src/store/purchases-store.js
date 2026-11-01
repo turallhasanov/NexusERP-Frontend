@@ -4,6 +4,8 @@ import { getCustomer } from '@/store/customers-store'
 
 export const PURCHASE_DRAFT = 'draft'
 export const PURCHASE_APPROVED = 'approved'
+// A purchase a company manager withdrew; the stock it added was taken back out. Not shown in the default list.
+export const PURCHASE_CANCELLED = 'cancelled'
 
 // API purchase (list summary or full document) → the shape the purchases, dashboard and finance modules use.
 export function toPurchase(purchase) {

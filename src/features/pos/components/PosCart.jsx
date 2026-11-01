@@ -39,7 +39,7 @@ export function PosCart({
 
   return (
     <aside className={styles.posCart}>
-      <div>
+      <div className="shrink-0">
         <p className="text-xs tracking-[0.28em] text-emerald-400">QƏBZ</p>
         <p className="mt-2 text-2xl font-semibold">Səbət</p>
         <p className="mt-1 text-sm text-white/50">{storeName ?? 'Mağaza seçilməyib'}</p>
@@ -64,45 +64,7 @@ export function PosCart({
         </label>
       </div>
 
-      {cart.length === 0 ? (
-        <p className="mt-10 flex-1 text-sm text-white/40">Barkod oxudun və ya məhsul seçin.</p>
-      ) : (
-        <ul className="mt-6 min-h-0 flex-1 overflow-auto">
-          {cart.map((line) => (
-            <li key={line.productId} className={styles.posCartLine}>
-              <div className="min-w-0">
-                <p className="truncate">{line.name}</p>
-                <p className="mt-1 font-mono text-[11px] tracking-widest text-white/40">{line.barcode}</p>
-                <p className="mt-1 text-white/50">{formatAzn(line.unitPrice)}</p>
-                <button
-                  type="button"
-                  className="mt-1 text-xs text-white/40 hover:text-white"
-                  onClick={() => onRemoveLine(line.productId)}
-                >
-                  Sil
-                </button>
-              </div>
-              <div className="flex flex-col items-end gap-3">
-                <p className="font-semibold">{formatAzn(line.quantity * line.unitPrice)}</p>
-                <div className="flex items-center gap-2">
-                  <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, -1)}>
-                    −
-                  </button>
-                  <span className="min-w-8 text-center tabular-nums">
-                    {line.quantity}
-                    {line.unitName ? ` ${line.unitName}` : ''}
-                  </span>
-                  <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, 1)}>
-                    +
-                  </button>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-auto space-y-3 pt-6">
+      <div className="shrink-0 space-y-3 border-b border-white/10 pb-6 pt-6">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-sm text-white/45">{itemCount} məhsul</p>
@@ -197,6 +159,44 @@ export function PosCart({
           Səbəti təmizlə
         </button>
       </div>
+
+      {cart.length === 0 ? (
+        <p className="mt-6 flex-1 text-sm text-white/40">Barkod oxudun və ya məhsul seçin.</p>
+      ) : (
+        <ul className="min-h-0 flex-1 overflow-y-auto">
+          {cart.map((line) => (
+            <li key={line.productId} className={styles.posCartLine}>
+              <div className="min-w-0">
+                <p className="truncate">{line.name}</p>
+                <p className="mt-1 font-mono text-[11px] tracking-widest text-white/40">{line.barcode}</p>
+                <p className="mt-1 text-white/50">{formatAzn(line.unitPrice)}</p>
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-white/40 hover:text-white"
+                  onClick={() => onRemoveLine(line.productId)}
+                >
+                  Sil
+                </button>
+              </div>
+              <div className="flex flex-col items-end gap-3">
+                <p className="font-semibold">{formatAzn(line.quantity * line.unitPrice)}</p>
+                <div className="flex items-center gap-2">
+                  <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, -1)}>
+                    −
+                  </button>
+                  <span className="min-w-8 text-center tabular-nums">
+                    {line.quantity}
+                    {line.unitName ? ` ${line.unitName}` : ''}
+                  </span>
+                  <button type="button" className={styles.posQtyButton} onClick={() => onChangeQty(line.productId, 1)}>
+                    +
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </aside>
   )
 }

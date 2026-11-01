@@ -98,7 +98,8 @@ export const styles = {
   posTile: 'flex flex-col gap-4 rounded-2xl border p-4 text-left transition',
   posTileIdle: 'border-white/10 bg-white/[0.06] hover:border-emerald-400/70 hover:bg-white/[0.1]',
   posTileMuted: 'cursor-not-allowed border-white/5 bg-white/[0.03] opacity-40',
-  posCart: 'flex min-h-[calc(100svh-3.5rem)] flex-col border-white/10 bg-[#161b22] p-6 xl:border-l',
+  posCart:
+    'flex h-[calc(100svh-3.5rem)] flex-col overflow-hidden border-white/10 bg-[#161b22] p-6 xl:sticky xl:top-14 xl:border-l',
   posCartLine: 'flex items-center justify-between gap-3 border-b border-white/10 py-4 text-sm',
   posQtyButton: 'h-8 w-8 rounded-full border border-white/20 text-white',
   posPayRow: 'grid grid-cols-2 gap-2',
@@ -185,6 +186,7 @@ export const styles = {
   toast: 'pointer-events-auto flex items-start justify-between gap-3 rounded border px-4 py-3 text-sm shadow-sm',
   toastSuccess: 'border-emerald-200 bg-emerald-50 text-emerald-800',
   toastError: 'border-red-200 bg-red-50 text-red-800',
+  toastInfo: 'border-amber-200 bg-amber-50 text-amber-800',
   toastClose: 'text-current opacity-60 hover:opacity-100',
   summaryValuePositive: 'mt-2 text-2xl font-semibold text-emerald-700',
   summaryValueNegative: 'mt-2 text-2xl font-semibold text-red-600',
@@ -286,6 +288,7 @@ export const styles = {
   // Inline rename in a table row: a white field with a slate border and a soft cyan focus glow.
   inlineEditInput: 'w-full max-w-xs rounded-xl border border-[#cbd5e1] bg-white px-3 py-1.5 text-sm text-[#0f172a] outline-none transition placeholder:text-slate-400 focus:border-[#0284c7] focus:shadow-[0_0_0_3px_rgba(2,132,199,0.15)] disabled:opacity-60',
   textActionStrong: 'text-sm font-medium text-emerald-700 hover:text-emerald-900 disabled:opacity-50',
+  textActionDanger: 'inline-flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50',
   posSelect: 'w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none [&>option]:text-neutral-900',
   // Shown inside the regular app while a platform admin views a company.
   impersonationBanner: 'flex flex-wrap items-center justify-between gap-3 border-b border-amber-300 bg-amber-50 px-6 py-2 text-sm text-amber-900',
