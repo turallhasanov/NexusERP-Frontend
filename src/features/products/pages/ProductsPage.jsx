@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { ProductTable } from '@/features/inventory/components/ProductTable'
 import { DeleteProductModal } from '@/features/products/components/DeleteProductModal'
+import { EditProductModal } from '@/features/products/components/EditProductModal'
 import { ProductForm } from '@/features/products/components/ProductForm'
 import { ProductTypeForm } from '@/features/products/components/ProductTypeForm'
 import { ProductTypeTable } from '@/features/products/components/ProductTypeTable'
@@ -36,6 +37,7 @@ export function ProductsPage() {
   const { user } = useAuthStore()
   const canDelete = isCompanyManager(user)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   useDocumentTitle('Məhsul')
 
@@ -145,9 +147,17 @@ export function ProductsPage() {
         error={search.error}
         onRetry={() => setRefreshKey((current) => current + 1)}
         emptyText={isFiltered ? 'Axtarışa uyğun məhsul tapılmadı.' : 'Hələ məhsul yoxdur.'}
+        onEdit={setEditing}
         onDelete={canDelete ? setPendingDelete : undefined}
         deletingId={deletingId}
       />
+      {editing ? (
+        <EditProductModal
+          product={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => setRefreshKey((current) => current + 1)}
+        />
+      ) : null}
       {pendingDelete ? (
         <DeleteProductModal
           product={pendingDelete}

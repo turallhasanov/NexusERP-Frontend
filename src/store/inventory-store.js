@@ -25,6 +25,8 @@ export function toProduct(product, stockRows = []) {
     unitPrice: product.salePrice,
     purchasePrice: product.purchasePrice,
     isActive: product.isActive,
+    imageUrl: product.imageUrl ?? null,
+    showOnWebsite: Boolean(product.showOnWebsite),
     minQuantity: DEFAULT_MIN_QUANTITY,
     quantity: Object.values(stocks).reduce((sum, quantity) => sum + quantity, 0),
     stocks,

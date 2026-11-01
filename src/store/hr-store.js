@@ -25,6 +25,10 @@ export function toEmployee(employee) {
     vacationNote: employee.vacationNote ?? null,
     terminationReason: employee.terminationReason ?? null,
     terminationOrderNumber: employee.terminationOrderNumber ?? null,
+    fin: employee.fin ?? null,
+    probationMonths: employee.probationMonths ?? null,
+    hiringOrderNumber: employee.hiringOrderNumber ?? null,
+    hiringOrderDate: employee.hiringOrderDate ?? null,
   }
 }
 

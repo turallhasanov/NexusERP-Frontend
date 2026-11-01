@@ -2,12 +2,13 @@ import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { TableState } from '@/components/ui/table-state'
 import { StockAlertBadge } from '@/features/inventory/components/StockAlertBadge'
+import { ProductThumb } from '@/features/products/components/ProductThumb'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 import { getProductType } from '@/store/product-types-store'
 import { formatQuantity, getProductUnit } from '@/store/product-units-store'
 
-const LEADING_COLUMNS = ['Kod', 'Məhsul', 'Kateqoriya', 'Vahid', 'Barkod', 'Alış qiyməti', 'Satış qiyməti']
+const LEADING_COLUMNS = ['Şəkil', 'Kod', 'Məhsul', 'Kateqoriya', 'Vahid', 'Barkod', 'Alış qiyməti', 'Satış qiyməti']
 const TRAILING_COLUMNS = ['Miqdar', 'Status']
 
 export function ProductTable({
@@ -17,11 +18,12 @@ export function ProductTable({
   error = '',
   onRetry,
   emptyText = 'Hələ məhsul yoxdur.',
-  // Given only where the user may delete (company admins and IT admins): adds an "Əməliyyat" column.
+  // Given only where the user may edit / delete (delete: company admins and IT admins): adds an "Əməliyyat" column.
+  onEdit,
   onDelete,
   deletingId = null,
 }) {
-  const trailingColumns = onDelete ? [...TRAILING_COLUMNS, 'Əməliyyat'] : TRAILING_COLUMNS
+  const trailingColumns = onEdit || onDelete ? [...TRAILING_COLUMNS, 'Əməliyyat'] : TRAILING_COLUMNS
   const columnCount = LEADING_COLUMNS.length + warehouses.length + trailingColumns.length
   const showRows = !isLoading && !error
 
@@ -59,6 +61,9 @@ export function ProductTable({
           {showRows
             ? products.map((product) => (
                 <tr key={product.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>
+                    <ProductThumb imageUrl={product.imageUrl} name={product.name} />
+                  </td>
                   <td className={styles.tableCellMuted}>{product.sku}</td>
                   <td className={styles.tableCell}>{product.name}</td>
                   <td className={styles.tableCellMuted}>{getProductType(product.typeId)?.name ?? '—'}</td>
@@ -75,16 +80,33 @@ export function ProductTable({
                   <td className={styles.tableCell}>
                     <StockAlertBadge quantity={product.quantity} minQuantity={product.minQuantity} />
                   </td>
-                  {onDelete ? (
+                  {onEdit || onDelete ? (
                     <td className={styles.tableCell}>
-                      <button
-                        type="button"
-                        className={styles.headerAction}
-                        onClick={() => onDelete(product)}
-                        disabled={Boolean(deletingId)}
-                      >
-                        {deletingId === product.id ? <Spinner /> : 'Sil'}
-                      </button>
+                      <div className={styles.rowActions}>
+                        {onEdit ? (
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-sm bg-sky-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+                            onClick={() => onEdit(product)}
+                            disabled={Boolean(deletingId)}
+                          >
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                              <path d="m4 20 1-4L16.5 4.5a2 2 0 0 1 2.8 0l.2.2a2 2 0 0 1 0 2.8L8 19l-4 1Z" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            Düzəliş et
+                          </button>
+                        ) : null}
+                        {onDelete ? (
+                          <button
+                            type="button"
+                            className={styles.headerAction}
+                            onClick={() => onDelete(product)}
+                            disabled={Boolean(deletingId)}
+                          >
+                            {deletingId === product.id ? <Spinner /> : 'Sil'}
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   ) : null}
                 </tr>

@@ -7,7 +7,7 @@ import { useApiQuery } from '@/hooks/use-api-query'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
 
-const TABLE_COLUMNS = ['Anbar', 'Qalıq miqdarı', 'Dəyər (alış qiyməti ilə)', 'Payı']
+const TABLE_COLUMNS = ['Anbar', 'Qalıq miqdarı', 'Dəyər (alış qiyməti, yoxdursa satış qiyməti ilə)', 'Payı']
 
 function formatShare(part, total) {
   return total > 0 ? `${((part / total) * 100).toFixed(1)}%` : '—'
@@ -26,7 +26,7 @@ export function InventoryValueReport() {
         Anbar dəyəri {report.isLoading && hasData ? <Spinner className="ml-2 align-middle" /> : null}
       </h2>
       <div className={styles.summaryGrid}>
-        <StatCard label="Ümumi dəyər" value={hasData ? formatAzn(totalValue) : null} hint="Cari alış qiyməti ilə" isLoading={report.isLoading} />
+        <StatCard label="Ümumi dəyər" value={hasData ? formatAzn(totalValue) : null} hint="Cari alış qiyməti ilə; alış qiyməti olmayan məhsul satış qiyməti ilə" isLoading={report.isLoading} />
         <StatCard label="Ümumi qalıq" value={hasData ? String(totalQuantity) : null} hint="Bütün vahidlər cəmi" isLoading={report.isLoading} />
         <StatCard label="Anbar sayı" value={hasData ? String(rows.length) : null} isLoading={report.isLoading} />
       </div>

@@ -10,6 +10,7 @@ import { DeleteEmployeeModal } from '@/features/hr/components/DeleteEmployeeModa
 import { EmployeeEditModal } from '@/features/hr/components/EmployeeEditModal'
 import { EmployeeForm } from '@/features/hr/components/EmployeeForm'
 import { EmployeeTable } from '@/features/hr/components/EmployeeTable'
+import { HiringDocumentModal } from '@/features/hr/components/HiringDocumentModal'
 import { TerminateModal } from '@/features/hr/components/TerminateModal'
 import { TerminationDocumentModal } from '@/features/hr/components/TerminationDocumentModal'
 import { VacationModal } from '@/features/hr/components/VacationModal'
@@ -33,7 +34,7 @@ export function HrPage() {
   const canDelete = isItAdmin(user)
   const [period, setPeriod] = useState(PERIOD_MONTH)
   const [preview, setPreview] = useState(false)
-  // { type: 'edit' | 'delete' | 'vacation' | 'terminate' | 'document', employee }
+  // { type: 'edit' | 'delete' | 'vacation' | 'terminate' | 'document' | 'hiring-document', employee }
   const [dialog, setDialog] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const payroll = payrollForPeriod(employees, period)
@@ -105,7 +106,8 @@ export function HrPage() {
           </Card>
         </div>
       </section>
-      {canManage ? <EmployeeForm /> : null}
+      {/* Straight to the new hiring order, so it can be printed right away. */}
+      {canManage ? <EmployeeForm onCreated={(employee) => setDialog({ type: 'hiring-document', employee })} /> : null}
       <EmployeeTable
         employees={employees}
         isLoading={isLoading}
@@ -117,6 +119,7 @@ export function HrPage() {
         onReturn={handleReturn}
         onTerminate={(employee) => setDialog({ type: 'terminate', employee })}
         onDocument={(employee) => setDialog({ type: 'document', employee })}
+        onHiringDocument={(employee) => setDialog({ type: 'hiring-document', employee })}
         onEdit={(employee) => setDialog({ type: 'edit', employee })}
         onDelete={canDelete ? (employee) => setDialog({ type: 'delete', employee }) : undefined}
       />
@@ -149,6 +152,9 @@ export function HrPage() {
       {dialog?.type === 'document' ? (
         <TerminationDocumentModal employee={dialog.employee} onClose={() => setDialog(null)} />
       ) : null}
+      {dialog?.type === 'hiring-document' ? (
+        <HiringDocumentModal employee={dialog.employee} onClose={() => setDialog(null)} />
+      ) : null}
       {preview ? (
         <DekontPreview
           title={dekont.title}
@@ -158,8 +164,8 @@ export function HrPage() {
           onPdf={viewPdf}
         />
       ) : null}
-      {/* Only one print root at a time: while the termination order is open, it is what gets printed. */}
-      {dialog?.type === 'document' ? null : <DekontPrintRoot dekont={dekont} />}
+      {/* Only one print root at a time: while an order (hiring or termination) is open, it is what gets printed. */}
+      {dialog?.type === 'document' || dialog?.type === 'hiring-document' ? null : <DekontPrintRoot dekont={dekont} />}
     </PageContainer>
   )
 }
