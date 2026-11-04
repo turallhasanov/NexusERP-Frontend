@@ -17,7 +17,7 @@ export function getCustomer(customerId) {
 // stays in the cache (for those documents) with isActive false; one nothing references is removed.
 export function markCustomerDeleted(customerId, deactivated) {
   if (deactivated) {
-    customers.update(customerId, { isActive: false })
+    customers.update(customerId, (customer) => ({ ...customer, isActive: false }))
   } else {
     customers.remove(customerId)
   }

@@ -34,6 +34,12 @@ export function dismissToast(id) {
 
 // variant: 'success' | 'error'
 export function showToast(message, variant = 'success') {
+  // The API client already reports server and network errors; a page that shows the same message itself would
+  // otherwise stack a second, identical toast.
+  if (state.toasts.some((toast) => toast.message === message && toast.variant === variant)) {
+    return
+  }
+
   const toast = { id: nextId, message, variant }
 
   nextId += 1

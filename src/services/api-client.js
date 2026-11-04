@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { getAuthState, logout, stopImpersonation } from '@/store/auth-store'
 import { beginRetry, endRetry } from '@/store/connection-store'
+import { showToast } from '@/store/toast-store'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5264/api'
 
@@ -109,9 +110,21 @@ apiClient.interceptors.response.use(
     }
 
     if (!error.response) {
+      // Retries are used up by now. A cancelled request is not a failure the user needs to hear about.
+      if (!axios.isCancel(error)) {
+        showToast('Serverə qoşulmaq mümkün olmadı.', 'error')
+      }
       return Promise.reject(new ApiError('Serverə qoşulmaq mümkün olmadı.', 0))
     }
 
-    return Promise.reject(new ApiError(message ?? `Sorğu uğursuz oldu (${status}).`, status))
+    const apiError = new ApiError(message ?? `Sorğu uğursuz oldu (${status}).`, status)
+
+    // Server faults (500 ProblemDetails from GlobalExceptionHandler, 502/503, ...) are reported here, wherever the
+    // request came from. 4xx stays with the page that made the request: it knows what the message means there.
+    if (status >= 500) {
+      showToast(apiError.message, 'error')
+    }
+
+    return Promise.reject(apiError)
   },
 )
