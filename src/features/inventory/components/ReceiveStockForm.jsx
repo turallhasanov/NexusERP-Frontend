@@ -30,7 +30,7 @@ export function ReceiveStockForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const productId = form.productId
@@ -47,7 +47,7 @@ export function ReceiveStockForm() {
       return
     }
 
-    const result = addStock({ productId, warehouseId, quantity })
+    const result = await addStock({ productId, warehouseId, quantity })
 
     if (!result.ok) {
       setError(result.error)
