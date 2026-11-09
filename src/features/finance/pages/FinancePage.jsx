@@ -21,6 +21,8 @@ import { IncomeTable } from '@/features/finance/components/IncomeTable'
 import { MizanTable } from '@/features/finance/components/MizanTable'
 import { PeriodFilter } from '@/features/finance/components/PeriodFilter'
 import { StoreProfitPanel } from '@/features/finance/components/StoreProfitPanel'
+import { matchesCustomerSearch } from '@/features/sales/api/order-search'
+import { CustomerSearch } from '@/features/sales/components/CustomerSearch'
 import { useApiQuery } from '@/hooks/use-api-query'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { PERIOD_MONTH, periodCardLabels } from '@/lib/date'
@@ -44,7 +46,10 @@ export function FinancePage() {
   const mizan = useApiQuery(fetchFinanceMizan, { period })
   const totals = companySummary.data?.totals ?? null
   const selectedStore = stores.find((store) => store.id === storeId) ?? null
-  const { entries, expenses } = useFinanceLedger(period)
+  const { entries: allEntries, expenses } = useFinanceLedger(period)
+  // The income list (and its report) can be narrowed to one customer's invoices.
+  const [customerQuery, setCustomerQuery] = useState('')
+  const entries = allEntries.filter((entry) => matchesCustomerSearch(entry, customerQuery))
   const { user } = useAuthStore()
   const canManage = isCompanyManager(user)
   const labels = periodCardLabels(period)
@@ -162,8 +167,15 @@ export function FinancePage() {
           }}
         />
       ) : null}
+      <CustomerSearch
+        value={customerQuery}
+        onChange={setCustomerQuery}
+        count={entries.length}
+        total={allEntries.length}
+      />
       <IncomeTable
         entries={entries}
+        isFiltered={customerQuery.trim() !== ''}
         onView={() => viewReport('income')}
         onPrint={() => printReport('income')}
         onPdf={() => pdfReport('income')}

@@ -3,6 +3,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
+import { useStorefront } from '@/features/company/api/use-company'
 import { fetchMyCompany } from '@/features/company/api/join-company'
 import { resetStock } from '@/features/settings/api/reset-stock'
 import { syncAllData } from '@/features/settings/api/sync-all-data'
@@ -18,6 +19,7 @@ import { USER_ROLE_LABELS, isCompanyManager } from '@/types/auth'
 export function SettingsPage() {
   const { user } = useAuthStore()
   const company = useApiQuery(fetchMyCompany)
+  const storefront = useStorefront()
   const [copied, setCopied] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [confirmingReset, setConfirmingReset] = useState(false)
@@ -103,11 +105,12 @@ export function SettingsPage() {
         <section className="space-y-4">
           <h2 className={styles.sectionTitle}>Data inteqrasiyası</h2>
           <Card>
+            {storefront.enabled ? (
             <div className={styles.inviteRow}>
               <div>
                 <p className={styles.summaryHint}>
-                  Khazar kataloqundakı bütün məhsulları, variantları (ölçü/rəng), qiymətləri və stoku NexusERP-yə
-                  köçürür və ya yeniləyir. Mövcud məhsulların stoku Khazar-dakı qalığa bərabərləşdirilir.
+                  {storefront.name} kataloqundakı bütün məhsulları, variantları (ölçü/rəng), qiymətləri və stoku NexusERP-yə
+                  köçürür və ya yeniləyir. Mövcud məhsulların stoku {storefront.name}-dakı qalığa bərabərləşdirilir.
                 </p>
               </div>
               <Button onClick={runDataIntegration} disabled={syncing} aria-busy={syncing}>
@@ -121,7 +124,8 @@ export function SettingsPage() {
                 )}
               </Button>
             </div>
-            <div className={`${styles.inviteRow} mt-4 border-t border-neutral-200 pt-4`}>
+            ) : null}
+            <div className={`${styles.inviteRow} ${storefront.enabled ? 'mt-4 border-t border-neutral-200 pt-4' : ''}`}>
               <p className={styles.summaryHint}>
                 Bütün anbarlardakı stok qalıqlarını 0 edir. Məhsullar və sənədlər silinmir. Geri qaytarıla bilməz.
               </p>

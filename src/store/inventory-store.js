@@ -69,7 +69,8 @@ export function getProductByBarcode(barcode) {
 
   return (
     inventory.getState().items.find(
-      (product) => product.barcode === code || product.sku.toLowerCase() === code.toLowerCase(),
+      (product) =>
+        product.barcode.toLowerCase() === code.toLowerCase() || product.sku.toLowerCase() === code.toLowerCase(),
     ) ?? null
   )
 }

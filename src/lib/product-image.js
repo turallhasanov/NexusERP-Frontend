@@ -14,5 +14,6 @@ export function productImageSrc(imageUrl) {
     return imageUrl
   }
 
-  return imageUrl.startsWith('/') ? `${API_ORIGIN}${imageUrl}` : ''
+  // Site paths come with or without the leading slash (/uploads/products/x.png, images/x.jpg).
+  return `${API_ORIGIN}/${imageUrl.replace(/^\/+/, '')}`
 }

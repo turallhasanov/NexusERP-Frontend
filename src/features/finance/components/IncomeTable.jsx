@@ -5,7 +5,7 @@ import { styles } from '@/lib/styles'
 
 const TABLE_COLUMNS = ['Qaimə', 'Kontragent', 'VÖEN', 'Məhsul', 'Növ', 'Məbləğ']
 
-export function IncomeTable({ entries, onView, onPrint, onPdf }) {
+export function IncomeTable({ entries, isFiltered = false, onView, onPrint, onPdf }) {
   return (
     <Card padded={false}>
       <div className="flex items-center justify-between gap-4 px-4 py-3">
@@ -26,7 +26,7 @@ export function IncomeTable({ entries, onView, onPrint, onPdf }) {
           {entries.length === 0 ? (
             <tr>
               <td className={styles.tableEmpty} colSpan={TABLE_COLUMNS.length}>
-                Hələ mədaxil yoxdur.
+                {isFiltered ? 'Bu müştəri üzrə mədaxil tapılmadı.' : 'Hələ mədaxil yoxdur.'}
               </td>
             </tr>
           ) : (

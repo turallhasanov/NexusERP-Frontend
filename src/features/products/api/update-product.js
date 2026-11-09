@@ -1,3 +1,4 @@
+import { splitPhotos } from '@/features/products/lib/product-images'
 import { formatProductName } from '@/lib/product-name'
 import { apiClient } from '@/services/api-client'
 import { loadProducts } from '@/store/inventory-store'
@@ -12,7 +13,7 @@ function toPrice(value) {
 // A failed push does not undo the save.
 export async function updateProduct(
   id,
-  { name, color, size, categoryId, unitId, purchasePrice, salePrice, showOnWebsite, image, removeImage },
+  { name, color, size, categoryId, unitId, purchasePrice, salePrice, showOnWebsite, images = [], removeImage, keepCurrent },
 ) {
   const body = new FormData()
   const append = (key, value) => {
@@ -30,8 +31,15 @@ export async function updateProduct(
   body.append('showOnWebsite', showOnWebsite ? 'true' : 'false')
   body.append('removeImage', removeImage ? 'true' : 'false')
 
+  // With no new main photo (the current one stays) every new file is a gallery photo for the Khazar store.
+  const { image, gallery } = splitPhotos(images, Boolean(keepCurrent))
+
   if (image) {
     body.append('image', image)
+  }
+
+  for (const file of gallery) {
+    body.append('galleryImages', file)
   }
 
   try {

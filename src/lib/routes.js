@@ -21,6 +21,7 @@ export const routes = {
   settings: '/settings',
   roles: '/roles',
   auditLogs: '/audit-logs',
+  users: '/users',
   // Platform administration (role "superadmin" only).
   admin: '/admin',
   adminTenants: '/admin/tenants',

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ButtonLink } from '@/components/ui/button-link'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { register } from '@/features/auth/api/register'
 import { routes } from '@/lib/routes'
 import { styles } from '@/lib/styles'
@@ -72,8 +73,7 @@ export function RegisterForm() {
         />
       </Field>
       <Field label="Şifrə">
-        <Input
-          type="password"
+        <PasswordInput
           value={form.password}
           onChange={updateField('password')}
           placeholder="••••••••"
@@ -82,8 +82,7 @@ export function RegisterForm() {
       </Field>
       <p className={styles.fieldHint}>Ən azı 6 simvol, içində hərf və rəqəm olmalıdır.</p>
       <Field label="Şifrə təkrarı">
-        <Input
-          type="password"
+        <PasswordInput
           value={form.passwordConfirm}
           onChange={updateField('passwordConfirm')}
           placeholder="••••••••"

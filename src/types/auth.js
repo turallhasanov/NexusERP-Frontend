@@ -18,6 +18,12 @@ export const COMPANY_ROLE_OPTIONS = [
   { id: ROLE_STAFF, label: USER_ROLE_LABELS[ROLE_STAFF] },
 ]
 
+// A user who joined a company and has not been approved by its IT admin yet (`isApproved` is absent in sessions
+// stored before approval existed, which counts as approved).
+export function isPendingApproval(user) {
+  return user?.isApproved === false && user.role !== ROLE_SUPER_ADMIN
+}
+
 export function isSuperAdmin(user) {
   return user?.role === ROLE_SUPER_ADMIN
 }

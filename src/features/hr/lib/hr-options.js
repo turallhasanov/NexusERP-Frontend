@@ -1,7 +1,7 @@
 import { formatDate } from '@/lib/date'
 
 // Departments offered by the employee forms; an employee keeps a department outside this list.
-export const DEPARTMENTS = ['İdarə', 'Anbar', 'Satış', 'Maliyyə']
+export const DEPARTMENTS = ['İdarə', 'Anbar', 'Satış', 'Maliyyə', 'İnsan resursları']
 
 // Leave types the API accepts (LeaveType, camelCase).
 export const LEAVE_TYPES = [

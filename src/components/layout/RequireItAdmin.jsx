@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { routes } from '@/lib/routes'
+import { companyHome } from '@/lib/access'
 import { useAuthStore } from '@/store/auth-store'
 import { isItAdmin } from '@/types/auth'
 
@@ -9,7 +9,7 @@ export function RequireItAdmin() {
   const { user } = useAuthStore()
 
   if (!isItAdmin(user)) {
-    return <Navigate to={routes.dashboard} replace />
+    return <Navigate to={companyHome(user)} replace />
   }
 
   return <Outlet />

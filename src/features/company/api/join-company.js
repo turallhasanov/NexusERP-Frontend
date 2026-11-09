@@ -15,7 +15,7 @@ export async function joinCompany({ inviteCode }) {
     const company = await apiClient.post('/companies/join', { inviteCode: code })
 
     setCompany(company)
-    enterCompany({ token: company.token, companyId: company.id, role: company.role })
+    enterCompany({ token: company.token, companyId: company.id, role: company.role, isApproved: company.isApproved })
 
     return { ok: true, company }
   } catch (error) {
