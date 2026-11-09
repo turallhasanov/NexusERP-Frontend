@@ -14,7 +14,7 @@ export async function createCompany({ name, voen }) {
 
     // The new token carries the companyId claim; company-scoped endpoints reject the old one.
     setCompany(company)
-    enterCompany({ token: company.token, companyId: company.id, role: company.role })
+    enterCompany({ token: company.token, companyId: company.id, role: company.role, isApproved: company.isApproved })
 
     return { ok: true }
   } catch (error) {

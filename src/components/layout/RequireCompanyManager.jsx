@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { routes } from '@/lib/routes'
+import { companyHome } from '@/lib/access'
 import { useAuthStore } from '@/store/auth-store'
 import { isCompanyManager } from '@/types/auth'
 
@@ -9,7 +9,7 @@ export function RequireCompanyManager() {
   const { user } = useAuthStore()
 
   if (!isCompanyManager(user)) {
-    return <Navigate to={routes.dashboard} replace />
+    return <Navigate to={companyHome(user)} replace />
   }
 
   return <Outlet />

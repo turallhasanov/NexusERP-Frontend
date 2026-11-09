@@ -1,3 +1,4 @@
+import { splitPhotos } from '@/features/products/lib/product-images'
 import { formatProductName } from '@/lib/product-name'
 import { apiClient } from '@/services/api-client'
 import { addProduct } from '@/store/inventory-store'
@@ -9,7 +10,7 @@ function toPrice(value) {
 }
 
 // The fields travel as multipart/form-data so the photo can go with them; empty values are left out.
-function toFormData({ name, color, size, barcode, categoryId, unitId, purchasePrice, salePrice, showOnWebsite, image }) {
+function toFormData({ name, color, size, barcode, categoryId, unitId, purchasePrice, salePrice, showOnWebsite, images = [] }) {
   const body = new FormData()
   const append = (key, value) => {
     if (value !== null && value !== undefined && value !== '') {
@@ -26,8 +27,15 @@ function toFormData({ name, color, size, barcode, categoryId, unitId, purchasePr
   append('salePrice', toPrice(salePrice))
   body.append('showOnWebsite', showOnWebsite ? 'true' : 'false')
 
+  // The first photo is the main one; the others go to the Khazar store gallery.
+  const { image, gallery } = splitPhotos(images)
+
   if (image) {
     body.append('image', image)
+  }
+
+  for (const file of gallery) {
+    body.append('galleryImages', file)
   }
 
   return body

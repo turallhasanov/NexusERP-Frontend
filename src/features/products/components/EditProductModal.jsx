@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AdminModal } from '@/features/admin/components/AdminUi'
+import { useStorefront } from '@/features/company/api/use-company'
 import { updateProduct } from '@/features/products/api/update-product'
 import { ProductImageField } from '@/features/products/components/ProductImageField'
 import { ProductVariantFields } from '@/features/products/components/ProductVariantFields'
@@ -11,6 +12,7 @@ import { showToast } from '@/store/toast-store'
 
 // "Düzəliş et": PUT /api/products/{id}. The barcode is shown but cannot change (it is the product's SKU in the Khazar store).
 export function EditProductModal({ product, onClose, onSaved }) {
+  const storefront = useStorefront()
   const { types, isLoading: typesLoading } = useProductTypes()
   const { units, isLoading: unitsLoading } = useProductUnits()
   // The saved name may already be "Name (Color / Size)"; the form edits its parts, so saving does not add a second suffix.
@@ -22,7 +24,7 @@ export function EditProductModal({ product, onClose, onSaved }) {
     salePrice: String(product.unitPrice ?? ''),
     showOnWebsite: Boolean(product.showOnWebsite),
   }))
-  const [image, setImage] = useState(null)
+  const [images, setImages] = useState([])
   const [removeImage, setRemoveImage] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -36,7 +38,14 @@ export function EditProductModal({ product, onClose, onSaved }) {
     setError('')
     setSubmitting(true)
 
-    const result = await updateProduct(product.id, { ...form, image, removeImage })
+    const result = await updateProduct(product.id, {
+      ...form,
+      showOnWebsite: storefront.enabled && form.showOnWebsite,
+      images,
+      removeImage,
+      // The current photo stays the main one unless it was removed or a new file took its place.
+      keepCurrent: Boolean(product.imageUrl) && !removeImage,
+    })
 
     setSubmitting(false)
 
@@ -49,11 +58,11 @@ export function EditProductModal({ product, onClose, onSaved }) {
 
     // A failed push leaves the change saved here; the message says so, and saving again retries the push.
     if (result.storefront.status === 'synced') {
-      showToast(`${saved}. Khazar saytı yeniləndi.`)
+      showToast(`${saved}. ${storefront.name} saytı yeniləndi.`)
     } else if (result.storefront.status === 'hidden') {
-      showToast(`${saved}. Khazar saytından gizlədildi.`)
+      showToast(`${saved}. ${storefront.name} saytından gizlədildi.`)
     } else if (result.storefront.status === 'failed') {
-      showToast(`${saved}. Amma Khazar saytı yenilənmədi: ${result.storefront.message}`, 'error')
+      showToast(`${saved}. Amma ${storefront.name || 'Storefront'} saytı yenilənmədi: ${result.storefront.message}`, 'error')
     } else {
       showToast(saved)
     }
@@ -140,14 +149,15 @@ export function EditProductModal({ product, onClose, onSaved }) {
         <ProductImageField
           inputId="edit-product-image"
           theme="admin"
-          file={image}
-          onFileChange={setImage}
+          files={images}
+          onFilesChange={setImages}
           onError={setError}
           currentUrl={product.imageUrl}
           removeCurrent={removeImage}
           onRemoveCurrentChange={setRemoveImage}
         />
 
+        {storefront.enabled ? (
         <div>
           <div className="flex items-center gap-2">
             <input
@@ -157,14 +167,15 @@ export function EditProductModal({ product, onClose, onSaved }) {
               onChange={(event) => setForm((current) => ({ ...current, showOnWebsite: event.target.checked }))}
             />
             <label htmlFor="edit-show-on-website" className="cursor-pointer text-sm font-medium text-slate-200">
-              Khazar Storefront-da göstər
+              {storefront.name} Storefront-da göstər
             </label>
           </div>
           <p className={`${styles.adminFormHint} mt-1`}>
-            Yadda saxlayanda dəyişikliklər (və yeni şəkil) Khazar saytının kataloquna göndərilir. İşarəni götürsəniz, məhsul
+            Yadda saxlayanda dəyişikliklər (və yeni şəkil) {storefront.name} saytının kataloquna göndərilir. İşarəni götürsəniz, məhsul
             saytdan gizlədilir.
           </p>
         </div>
+        ) : null}
 
         {error ? <p className={styles.adminFormError}>{error}</p> : null}
 

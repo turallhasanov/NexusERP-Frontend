@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ButtonLink } from '@/components/ui/button-link'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { signIn } from '@/features/auth/api/sign-in'
 import { homeRoute } from '@/lib/home-route'
 import { routes } from '@/lib/routes'
@@ -57,8 +58,7 @@ export function LoginForm({ initialEmail = '', notice = '' }) {
         />
       </Field>
       <Field label="Şifrə">
-        <Input
-          type="password"
+        <PasswordInput
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="••••••••"

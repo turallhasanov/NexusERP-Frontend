@@ -7,6 +7,8 @@ import { approveSale } from '@/features/sales/api/approve-sale'
 import { cancelSale } from '@/features/sales/api/cancel-sale'
 import { fetchSale } from '@/features/sales/api/fetch-sale'
 import { buildSalesDekont, openSalesDekontPdf } from '@/features/sales/api/sales-dekont'
+import { matchesCustomerSearch } from '@/features/sales/api/order-search'
+import { CustomerSearch } from '@/features/sales/components/CustomerSearch'
 import { InvoiceReceipt } from '@/features/sales/components/InvoiceReceipt'
 import { OrderForm } from '@/features/sales/components/OrderForm'
 import { OrderTable } from '@/features/sales/components/OrderTable'
@@ -50,12 +52,14 @@ export function SalesPage() {
   // Cancelled orders are hidden from every view except their own filter.
   const activeOrders = orders.filter((order) => order.status !== SALE_CANCELLED)
   const onlineOrders = activeOrders.filter((order) => order.channel === CHANNEL_ONLINE)
-  const shownOrders =
+  const [customerQuery, setCustomerQuery] = useState('')
+  const filteredByStatus =
     filter === FILTER_CANCELLED
       ? orders.filter((order) => order.status === SALE_CANCELLED)
       : filter === FILTER_ONLINE
         ? onlineOrders
         : activeOrders
+  const shownOrders = filteredByStatus.filter((order) => matchesCustomerSearch(order, customerQuery))
   const selectedOrder = orders.find((order) => order.id === selectedId) ?? shownOrders[0]
   const detail = useDocumentDetail(fetchSale, selectedOrder?.id, selectedOrder?.status)
   const dekont = detail.document ? buildSalesDekont(detail.document) : null
@@ -157,9 +161,15 @@ export function SalesPage() {
           </button>
         ))}
       </div>
+      <CustomerSearch
+        value={customerQuery}
+        onChange={setCustomerQuery}
+        count={shownOrders.length}
+        total={filteredByStatus.length}
+      />
       <OrderTable
         orders={shownOrders}
-        emptyText={EMPTY_TEXTS[filter]}
+        emptyText={customerQuery.trim() ? 'Bu müştəri üzrə qaimə tapılmadı.' : EMPTY_TEXTS[filter]}
         isLoading={isLoading}
         error={error}
         onRetry={reload}

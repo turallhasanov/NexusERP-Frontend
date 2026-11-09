@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 
-// Cached details ({ id, name, voen }) of the active company, for the sidebar and dekonts.
+// Cached details ({ id, name, voen, storefrontName }) of the active company, for the sidebar and dekonts.
 // The source of truth is GET /api/company; this copy only survives page reloads.
 const STORAGE_KEY = 'nexuserp-company'
 
@@ -47,11 +47,13 @@ export function subscribeCompany(listener) {
   }
 }
 
-export function setCompany({ id, name, voen }) {
+export function setCompany({ id, name, voen, storefrontName }) {
   const company = {
     id,
     name,
     voen: voen || '',
+    // Name of the e-commerce storefront the company is connected to (e.g. "Khazar"); '' when it has none.
+    storefrontName: storefrontName || '',
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(company))

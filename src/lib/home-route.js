@@ -1,3 +1,4 @@
+import { companyHome } from '@/lib/access'
 import { routes } from '@/lib/routes'
 import { isSuperAdmin } from '@/types/auth'
 
@@ -5,7 +6,7 @@ import { isSuperAdmin } from '@/types/auth'
 // everyone else on the dashboard once a company is active, or on the company page before that.
 export function homeRoute({ user, activeCompanyId }) {
   if (activeCompanyId) {
-    return routes.dashboard
+    return companyHome(user)
   }
 
   return isSuperAdmin(user) ? routes.admin : routes.selectCompany
