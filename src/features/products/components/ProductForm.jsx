@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useStorefront } from '@/features/company/api/use-company'
 import { createProduct } from '@/features/products/api/create-product'
 import { generateBarcode } from '@/features/products/api/generate-barcode'
 import { ProductImageField } from '@/features/products/components/ProductImageField'
@@ -23,10 +24,11 @@ const EMPTY_FORM = {
   purchasePrice: '',
   salePrice: '',
   showOnWebsite: false,
-  image: null,
+  images: [],
 }
 
 export function ProductForm({ onCreated }) {
+  const storefront = useStorefront()
   const { types, isLoading: typesLoading } = useProductTypes()
   const { units, isLoading: unitsLoading } = useProductUnits()
   const [form, setForm] = useState(EMPTY_FORM)
@@ -63,7 +65,8 @@ export function ProductForm({ onCreated }) {
     setError('')
     setSubmitting(true)
 
-    const result = await createProduct(form)
+    // A company without a storefront connection never sends a product there, whatever the form state says.
+    const result = await createProduct({ ...form, showOnWebsite: storefront.enabled && form.showOnWebsite })
 
     setSubmitting(false)
 
@@ -78,9 +81,9 @@ export function ProductForm({ onCreated }) {
 
     // A failed push leaves the product saved here; say so, so it can be sent again by saving it with the box ticked.
     if (result.storefront.status === 'synced') {
-      showToast(`${created}. Khazar saytına göndərildi.`)
+      showToast(`${created}. ${storefront.name} saytına göndərildi.`)
     } else if (result.storefront.status === 'failed') {
-      showToast(`${created}. Amma Khazar saytına göndərilmədi: ${result.storefront.message}`, 'error')
+      showToast(`${created}. Amma ${storefront.name || 'Storefront'} saytına göndərilmədi: ${result.storefront.message}`, 'error')
     } else {
       showToast(created)
     }
@@ -168,10 +171,11 @@ export function ProductForm({ onCreated }) {
         <div className={styles.formGrid}>
           <ProductImageField
             inputId="product-image"
-            file={form.image}
-            onFileChange={(image) => setForm((current) => ({ ...current, image }))}
+            files={form.images}
+            onFilesChange={(images) => setForm((current) => ({ ...current, images }))}
             onError={setError}
           />
+          {storefront.enabled ? (
           <div>
             <div className="flex items-center gap-2">
               <input
@@ -181,13 +185,14 @@ export function ProductForm({ onCreated }) {
                 onChange={(event) => setForm((current) => ({ ...current, showOnWebsite: event.target.checked }))}
               />
               <label htmlFor="showOnWebsite" className="cursor-pointer text-sm font-medium">
-                Khazar Storefront-da göstər
+                {storefront.name} Storefront-da göstər
               </label>
             </div>
             <p className={cn(styles.fieldHint, 'mt-1')}>
-              Yadda saxlayanda məhsul və şəkli Khazar saytının kataloquna göndərilir.
+              Yadda saxlayanda məhsul və şəkli {storefront.name} saytının kataloquna göndərilir.
             </p>
           </div>
+          ) : null}
         </div>
         <p className={styles.fieldHint}>Məhsul kodu (MHS-001, …) avtomatik verilir.</p>
         {error ? <p className={styles.formError}>{error}</p> : null}

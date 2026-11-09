@@ -4,6 +4,7 @@ import { checkoutPos } from '@/features/pos/api/checkout-pos'
 import { lookupBarcode } from '@/features/pos/api/lookup-barcode'
 import { buildPosDekont, openPosDekontPdf } from '@/features/pos/api/pos-dekont'
 import { toPosItem, usePosCatalog } from '@/features/pos/api/use-pos-catalog'
+import { filterPosProducts, resolveScan } from '@/features/pos/lib/resolve-scan'
 import { PosCart } from '@/features/pos/components/PosCart'
 import { PosProductGrid } from '@/features/pos/components/PosProductGrid'
 import { PosScanner } from '@/features/pos/components/PosScanner'
@@ -45,26 +46,7 @@ export function PosPage() {
   const cashRegisterId = chosenCashRegisterId || activeCashRegisters[0]?.id || ''
   const cartTotal = cart.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
   const change = payment === PAYMENT_CASH ? cashChange(cartTotal, Number(tendered)) : null
-  const visibleProducts = useMemo(() => {
-    const term = query.trim().toLowerCase()
-
-    return catalog.filter((product) => {
-      if (typeId && product.typeId !== typeId) {
-        return false
-      }
-
-      if (!term) {
-        return true
-      }
-
-      return (
-        product.name.toLowerCase().includes(term) ||
-        product.barcode.includes(term) ||
-        product.sku.toLowerCase().includes(term) ||
-        product.typeName.toLowerCase().includes(term)
-      )
-    })
-  }, [catalog, query, typeId])
+  const visibleProducts = useMemo(() => filterPosProducts(catalog, query, typeId), [catalog, query, typeId])
   useDocumentTitle('POS')
 
   useEffect(() => {
@@ -139,17 +121,35 @@ export function PosPage() {
     setScanning(true)
 
     try {
-      const match = await lookupBarcode(code)
+      // 1. an exact barcode / product code in the loaded catalog (any case), regardless of the category chosen
+      let item = null
+      const local = resolveScan(catalog, code)
 
-      if (!match || match.isActive === false) {
-        setError('Barkod tapılmadı.')
-        setNotice('')
-        return
+      if (local.kind === 'exact') {
+        item = local.product
+      } else {
+        // 2. an exact barcode the cache does not have yet (a product added on another till)
+        const remote = await lookupBarcode(code)
+
+        if (remote && remote.isActive !== false) {
+          item = toPosItem(remote, warehouseId)
+        } else if (local.kind === 'single') {
+          // 3. part of a name, code or barcode that fits exactly one product ("khz" with one KHZ product)
+          item = local.product
+        } else {
+          showToast(local.kind === 'many' ? `${local.count} məhsul tapıldı, siyahıdan seçin.` : 'Barkod tapılmadı.', 'error')
+          setError('')
+          setNotice('')
+          return
+        }
       }
 
-      if (addProduct(toPosItem(match, warehouseId))) {
+      if (addProduct(item)) {
         setQuery('')
+        setTypeId('')
       }
+
+      scannerRef.current?.focus()
     } catch (lookupError) {
       setError(lookupError.message)
       setNotice('')

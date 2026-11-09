@@ -5,6 +5,7 @@ import { AuthShell } from '@/components/layout/AuthShell'
 import { RequireAuth } from '@/components/layout/RequireAuth'
 import { RequireCompany } from '@/components/layout/RequireCompany'
 import { RequireCompanyManager } from '@/components/layout/RequireCompanyManager'
+import { RequireModuleAccess } from '@/components/layout/RequireModuleAccess'
 import { RequireItAdmin } from '@/components/layout/RequireItAdmin'
 import { RequireSuperAdmin } from '@/components/layout/RequireSuperAdmin'
 import { AdminShell } from '@/features/admin/components/AdminShell'
@@ -41,6 +42,7 @@ const PosPage = lazyPage(() => import('@/features/pos/pages/PosPage'), 'PosPage'
 const ReportsPage = lazyPage(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage')
 const SettingsPage = lazyPage(() => import('@/features/settings/pages/SettingsPage'), 'SettingsPage')
 const AuditLogsPage = lazyPage(() => import('@/features/audit/pages/AuditLogsPage'), 'AuditLogsPage')
+const UsersPage = lazyPage(() => import('@/features/users/pages/UsersPage'), 'UsersPage')
 const RolesPage = lazyPage(() => import('@/features/roles/pages/RolesPage'), 'RolesPage')
 
 export default function App() {
@@ -71,6 +73,7 @@ export default function App() {
         </Route>
         <Route element={<RequireCompany />}>
           <Route element={<AppShell />}>
+            <Route element={<RequireModuleAccess />}>
             <Route path={routes.dashboard} element={<DashboardPage />} />
             {/* The former "Anbar" page is now the "Məhsul qalıqları" tab of Anbar İdarəetməsi. */}
             <Route path={routes.inventory} element={<Navigate to={routes.warehouses} replace />} />
@@ -90,6 +93,8 @@ export default function App() {
             </Route>
             <Route element={<RequireItAdmin />}>
               <Route path={routes.auditLogs} element={<AuditLogsPage />} />
+              <Route path={routes.users} element={<UsersPage />} />
+            </Route>
             </Route>
           </Route>
         </Route>

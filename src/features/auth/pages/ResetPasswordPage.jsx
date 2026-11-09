@@ -4,7 +4,7 @@ import { AuthPanel } from '@/components/layout/AuthPanel'
 import { Button } from '@/components/ui/button'
 import { ButtonLink } from '@/components/ui/button-link'
 import { Field } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { OtpInput } from '@/components/ui/otp-input'
 import { requestPasswordReset, resetPassword } from '@/features/auth/api/email-codes'
 import { useCountdown } from '@/hooks/use-countdown'
@@ -90,8 +90,7 @@ export function ResetPasswordPage() {
           </button>
         </div>
         <Field label="Yeni şifrə">
-          <Input
-            type="password"
+          <PasswordInput
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
             placeholder="••••••••"
@@ -100,8 +99,7 @@ export function ResetPasswordPage() {
         </Field>
         <p className={styles.fieldHint}>Ən azı 6 simvol, içində hərf və rəqəm olmalıdır.</p>
         <Field label="Şifrə təkrarı">
-          <Input
-            type="password"
+          <PasswordInput
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             placeholder="••••••••"

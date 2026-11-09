@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { ProductCombobox } from '@/features/inventory/components/ProductCombobox'
 import { addStock } from '@/features/inventory/api/receive-stock'
 import { styles } from '@/lib/styles'
 import { useInventoryStore } from '@/store/inventory-store'
@@ -20,6 +21,7 @@ export function ReceiveStockForm() {
   const { warehouses } = useWarehousesStore()
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
+  const quantityRef = useRef(null)
 
   function updateField(field) {
     return (event) => {
@@ -30,7 +32,7 @@ export function ReceiveStockForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const productId = form.productId
@@ -47,7 +49,7 @@ export function ReceiveStockForm() {
       return
     }
 
-    const result = addStock({ productId, warehouseId, quantity })
+    const result = await addStock({ productId, warehouseId, quantity })
 
     if (!result.ok) {
       setError(result.error)
@@ -62,20 +64,17 @@ export function ReceiveStockForm() {
     <Card>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
-          <Field label="Məhsul">
-            <select
-              className={styles.input}
-              value={form.productId}
-              onChange={updateField('productId')}
-            >
-              <option value="">Məhsulu seçin</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} ({formatQuantity(product.quantity, product.unitId)})
-                </option>
-              ))}
-            </select>
-          </Field>
+          <ProductCombobox
+            products={products}
+            value={form.productId}
+            onChange={(productId) => setForm((current) => ({ ...current, productId }))}
+            // A picked product (typed, clicked or scanned) sends the cursor straight to the quantity.
+            onSelected={() => {
+              quantityRef.current?.focus()
+              quantityRef.current?.select()
+            }}
+            formatLabel={(product) => `${product.name} (${formatQuantity(product.quantity, product.unitId)})`}
+          />
           <Field label="Anbar">
             <select
               className={styles.input}
@@ -92,6 +91,7 @@ export function ReceiveStockForm() {
           </Field>
           <Field label="Say">
             <Input
+              ref={quantityRef}
               type="number"
               min={0}
               step="0.01"

@@ -103,12 +103,17 @@ export function setToken(token) {
 
 // After creating or joining a company: the new token (with the companyId claim), the user's role in that
 // company ("admin" when created, "staff" when joined) and the active company change together.
-export function enterCompany({ token, companyId, role }) {
+export function enterCompany({ token, companyId, role, isApproved }) {
   setState({
     token,
-    user: state.user ? { ...state.user, role, companyId } : state.user,
+    user: state.user ? { ...state.user, role, companyId, isApproved: isApproved ?? state.user.isApproved } : state.user,
     activeCompanyId: companyId,
   })
+}
+
+// Replaces the stored profile with a fresh GET /api/auth/me (e.g. after an admin approved the account).
+export function updateUser(user) {
+  setState({ ...state, user: { ...state.user, ...user } })
 }
 
 export function setActiveCompany(companyId) {

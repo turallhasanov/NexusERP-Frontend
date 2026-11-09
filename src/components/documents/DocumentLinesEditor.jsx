@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { ProductCombobox } from '@/features/inventory/components/ProductCombobox'
 import { emptyLine, linesTotal } from '@/lib/document-lines'
 import { formatAzn } from '@/lib/money'
 import { styles } from '@/lib/styles'
@@ -6,6 +8,8 @@ import { formatQuantity } from '@/store/product-units-store'
 // Line items of a purchase or sale form. Choosing a product prefills its price via `defaultPrice`;
 // `stockWarehouseId` shows the balance in that warehouse next to each product.
 export function DocumentLinesEditor({ lines, onChange, products, defaultPrice, stockWarehouseId, pricePlaceholder = '0.00' }) {
+  const quantityInputs = useRef({})
+
   function updateLine(key, field, value) {
     onChange(
       lines.map((line) => {
@@ -58,19 +62,21 @@ export function DocumentLinesEditor({ lines, onChange, products, defaultPrice, s
               <tr key={line.key}>
                 <td className={`${styles.lineCell} text-neutral-500`}>{index + 1}</td>
                 <td className={`${styles.lineCell} min-w-56`}>
-                  <select
-                    className={styles.lineInput}
-                    aria-label={`Sətir ${index + 1}: məhsul`}
+                  <ProductCombobox
+                    products={products}
                     value={line.productId}
-                    onChange={(event) => updateLine(line.key, 'productId', event.target.value)}
-                  >
-                    <option value="">Məhsulu seçin</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} ({stockLabel(product)})
-                      </option>
-                    ))}
-                  </select>
+                    label={null}
+                    ariaLabel={`Sətir ${index + 1}: məhsul`}
+                    inputClassName={styles.lineInput}
+                    placeholder="Ad, kod və ya barkod"
+                    formatLabel={(product) => `${product.name} (${stockLabel(product)})`}
+                    onChange={(productId) => updateLine(line.key, 'productId', productId)}
+                    // Picked by typing, click or barcode scanner: on to the quantity.
+                    onSelected={() => {
+                      quantityInputs.current[line.key]?.focus()
+                      quantityInputs.current[line.key]?.select()
+                    }}
+                  />
                 </td>
                 <td className={`${styles.lineCell} w-28`}>
                   <input
@@ -78,6 +84,9 @@ export function DocumentLinesEditor({ lines, onChange, products, defaultPrice, s
                     min={0}
                     step="0.001"
                     className={styles.lineInput}
+                    ref={(element) => {
+                      quantityInputs.current[line.key] = element
+                    }}
                     aria-label={`Sətir ${index + 1}: miqdar`}
                     value={line.quantity}
                     onChange={(event) => updateLine(line.key, 'quantity', event.target.value)}
